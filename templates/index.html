@@ -80,6 +80,13 @@
       box-shadow: 0 0 20px #00f0ff;
       margin-left: auto;
     }
+    .cryptoDog-panel {
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      width: 250px;
+      box-shadow: 0 0 20px #00ffcc;
+    }
     canvas {
       width: 100% !important;
       height: 300px !important;
@@ -137,9 +144,10 @@
       </form>
     </div>
 
-    <!-- 📊 Prices & Chart -->
-    <div style="display: flex; flex: 1; gap: 40px; align-items: flex-start;">
-      <div style="flex: 1;">
+    <!-- 📊 Prices, CryptoDog, and Chart Area -->
+    <div style="flex: 1; display: flex; gap: 20px; align-items: flex-start;">
+      <!-- Prices Panel -->
+      <div style="flex: 2;">
         <h2>📈 Prices & Change</h2>
         <ul>
           {% for coin in selected %}
@@ -157,30 +165,33 @@
             <li>{{ coin }}: +{{ gain }}</li>
           {% endfor %}
         </ul>
+
+        <div class="chart-panel">
+          <h3 style="text-align:center;">📊 % Change Chart</h3>
+          <canvas id="priceChart"></canvas>
+        </div>
       </div>
 
-      <div class="chart-panel">
-        <h3 style="text-align:center;">📊 % Change Chart</h3>
-        <canvas id="priceChart"></canvas>
+      <!-- CryptoDog Panel -->
+      <div class="cryptoDog-panel">
+        <h2 style="text-align: center;">🐶 CryptoDog</h2>
+        <div id="cryptoDogWidget" style="display: block;">
+          <div id="cryptoDogBanner">CryptoDog is standing by...</div>
+          <img id="dogFace" src="/static/neutral.png" alt="Dog Clock Face" style="width: 100%; border-radius: 12px;" />
+          <div class="status" id="statusText">Observation Mode. No Alerts.</div>
+          <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
+          <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
+          <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 🐶 CryptoDog Widget (Fixed) -->
-<div id="cryptoDogWidget" style="display:none; position: fixed; bottom: 100px; right: 20px; width: 120px; background-color: rgba(34, 34, 34, 0.95); border: 2px solid #00ffcc; border-radius: 12px; padding: 8px; box-shadow: 0 0 10px #00ffcc;">
-  <div id="cryptoDogBanner">CryptoDog is standing by...</div>
-  <img id="dogFace" src="/static/neutral.png" alt="Dog Clock Face" style="width: 100%; border-radius: 12px;" />
-  <div class="status" id="statusText">Observation Mode. No Alerts.</div>
-  <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
-  <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
-  <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
-</div>
-
 <!-- 🕓 Timestamp -->
 <div class="timestamp" id="timestamp">Last refreshed: --:--:--</div>
 
-<!-- 🧠 Full Scripts: -->
+<!-- 🧠 Scripts -->
 <script>
   // CryptoDog Functions
   function toggleCryptoDog() {
@@ -188,7 +199,6 @@
     const isVisible = widget.style.display !== "none";
     widget.style.display = isVisible ? "none" : "block";
 
-    // Stop sounds when hidden
     if (isVisible) {
       document.getElementById("bark")?.pause();
       document.getElementById("growl")?.pause();
@@ -241,85 +251,24 @@
     if (sound) sound.play().catch(() => {});
   }
 
-  // CryptoKitty + LocalStorage Selections
-  const coinSelector = document.getElementById('coinSelector');
-  const inputField = document.getElementById('selectedCoinsInput');
-  const selectedCoins = new Set(inputField.value.split(','));
-
-  coinSelector.addEventListener('dblclick', (e) => {
-    const coin = e.target.value;
-    if (selectedCoins.has(coin)) {
-      selectedCoins.delete(coin);
-    } else {
-      selectedCoins.add(coin);
-    }
-    inputField.value = Array.from(selectedCoins).join(',');
-  });
-
-  const timestampEl = document.getElementById('timestamp');
-  const now = new Date();
-  timestampEl.textContent = 'Last refreshed: ' +
-    now.getHours().toString().padStart(2, '0') + ':' +
-    now.getMinutes().toString().padStart(2, '0') + ':' +
-    now.getSeconds().toString().padStart(2, '0');
-
-  const rawHistory = {{ price_history | tojson | safe }};
-  const selected = {{ selected | tojson | safe }};
-  const labels = Array.from({ length: 10 }, (_, i) => {
-    const minutesAgo = (9 - i) * 5;
-    return minutesAgo === 0 ? "Now" : `${minutesAgo} min ago`;
-  });
-
-  const datasets = selected.map((coin) => {
-    const prices = rawHistory[coin] || [];
-    const base = prices[0] || 1;
-    const percentChanges = prices.map(p => ((p - base) / base) * 100);
-    return {
-      label: coin,
-      data: percentChanges,
-      borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      pointRadius: 3,
-      borderWidth: 2,
-      fill: false,
-      tension: 0.3
-    };
-  });
-
-  new Chart(document.getElementById('priceChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: '% Change'
-          },
-          ticks: {
-            callback: value => value.toFixed(1) + '%'
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: {
-            color: '#fff'
-          }
-        }
-      }
-    }
-  });
-
-  setTimeout(() => location.reload(), 300000); // Refresh every 5 min
   document.addEventListener('DOMContentLoaded', function () {
     updateDogFace();
-    setInterval(updateDogFace, 60000); // Update dog face every minute
+    setInterval(updateDogFace, 60000);
+
+    const coinSelector = document.getElementById('coinSelector');
+    const inputField = document.getElementById('selectedCoinsInput');
+    const selectedCoins = new Set(inputField.value.split(','));
+
+    coinSelector.addEventListener('dblclick', (e) => {
+      const coin = e.target.value;
+      if (selectedCoins.has(coin)) {
+        selectedCoins.delete(coin);
+      } else {
+        selectedCoins.add(coin);
+      }
+      inputField.value = Array.from(selectedCoins).join(',');
+    });
+
     const savedCoins = JSON.parse(localStorage.getItem('selectedCoins'));
     if (savedCoins && savedCoins.length > 0) {
       Array.from(coinSelector.options).forEach(option => {
@@ -327,6 +276,7 @@
       });
       inputField.value = savedCoins.join(',');
     }
+
     const form = document.querySelector('form');
     if (form) {
       form.addEventListener('submit', function() {
@@ -334,6 +284,66 @@
         localStorage.setItem('selectedCoins', JSON.stringify(selected));
       });
     }
+
+    const timestampEl = document.getElementById('timestamp');
+    const now = new Date();
+    timestampEl.textContent = 'Last refreshed: ' +
+      now.getHours().toString().padStart(2, '0') + ':' +
+      now.getMinutes().toString().padStart(2, '0') + ':' +
+      now.getSeconds().toString().padStart(2, '0');
+
+    const rawHistory = {{ price_history | tojson | safe }};
+    const selected = {{ selected | tojson | safe }};
+    const labels = Array.from({ length: 10 }, (_, i) => {
+      const minutesAgo = (9 - i) * 5;
+      return minutesAgo === 0 ? "Now" : `${minutesAgo} min ago`;
+    });
+
+    const datasets = selected.map((coin) => {
+      const prices = rawHistory[coin] || [];
+      const base = prices[0] || 1;
+      const percentChanges = prices.map(p => ((p - base) / base) * 100);
+      return {
+        label: coin,
+        data: percentChanges,
+        borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
+        pointRadius: 3,
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      };
+    });
+
+    new Chart(document.getElementById('priceChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: '% Change'
+            },
+            ticks: {
+              callback: value => value.toFixed(1) + '%'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#fff'
+            }
+          }
+        }
+      }
+    });
   });
 </script>
 
