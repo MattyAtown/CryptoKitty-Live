@@ -137,7 +137,7 @@
       </form>
     </div>
 
-    <!-- 📊 Results + Chart -->
+    <!-- 📊 Prices & Chart -->
     <div style="display: flex; flex: 1; gap: 40px; align-items: flex-start;">
       <div style="flex: 1;">
         <h2>📈 Prices & Change</h2>
@@ -167,11 +167,81 @@
   </div>
 </div>
 
+<!-- 🐶 CryptoDog Widget (Fixed) -->
+<div id="cryptoDogWidget" style="display:none; position: fixed; bottom: 100px; right: 20px; width: 120px; background-color: rgba(34, 34, 34, 0.95); border: 2px solid #00ffcc; border-radius: 12px; padding: 8px; box-shadow: 0 0 10px #00ffcc;">
+  <div id="cryptoDogBanner">CryptoDog is standing by...</div>
+  <img id="dogFace" src="/static/neutral.png" alt="Dog Clock Face" style="width: 100%; border-radius: 12px;" />
+  <div class="status" id="statusText">Observation Mode. No Alerts.</div>
+  <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
+  <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
+  <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
+</div>
+
 <!-- 🕓 Timestamp -->
 <div class="timestamp" id="timestamp">Last refreshed: --:--:--</div>
 
-<!-- 🔥 Scripts: CryptoDog, CryptoKitty Core, and LocalStorage Fix -->
+<!-- 🧠 Full Scripts: -->
 <script>
+  // CryptoDog Functions
+  function toggleCryptoDog() {
+    const widget = document.getElementById("cryptoDogWidget");
+    const isVisible = widget.style.display !== "none";
+    widget.style.display = isVisible ? "none" : "block";
+
+    // Stop sounds when hidden
+    if (isVisible) {
+      document.getElementById("bark")?.pause();
+      document.getElementById("growl")?.pause();
+      document.getElementById("sniff")?.pause();
+    }
+  }
+
+  function getAESTTime() {
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    return new Date(utc + 10 * 3600000);
+  }
+
+  function updateDogFace() {
+    const now = getAESTTime();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const faceImg = document.getElementById("dogFace");
+    const statusText = document.getElementById("statusText");
+    const banner = document.getElementById("cryptoDogBanner");
+    const bark = document.getElementById("bark");
+    const growl = document.getElementById("growl");
+    const sniff = document.getElementById("sniff");
+
+    let face = "neutral";
+    let bannerText = "CryptoDog is standing by...";
+    let status = "Observation Mode. No Alerts.";
+    let sound = null;
+
+    if ([3, 15, 20].includes(hour) && minute <= 30) {
+      face = "angry";
+      bannerText = "Selling Alert!";
+      status = `Market Dip Warning (${hour}:${minute.toString().padStart(2, '0')} AEST)`;
+      sound = growl;
+    } else if ([7, 11, 12, 17, 21].includes(hour) && minute <= 30) {
+      face = "happy";
+      bannerText = "Buying Alert!";
+      status = `Buy Signal (${hour}:${minute.toString().padStart(2, '0')} AEST)`;
+      sound = bark;
+    } else {
+      face = "excited";
+      bannerText = "Market Activity UP/Down";
+      status = `Sniffing Hour (${hour}:${minute.toString().padStart(2, '0')} AEST)`;
+      sound = sniff;
+    }
+
+    if (faceImg) faceImg.src = `/static/${face}.png`;
+    if (banner) banner.textContent = bannerText;
+    if (statusText) statusText.textContent = status;
+    if (sound) sound.play().catch(() => {});
+  }
+
+  // CryptoKitty + LocalStorage Selections
   const coinSelector = document.getElementById('coinSelector');
   const inputField = document.getElementById('selectedCoinsInput');
   const selectedCoins = new Set(inputField.value.split(','));
@@ -204,7 +274,6 @@
     const prices = rawHistory[coin] || [];
     const base = prices[0] || 1;
     const percentChanges = prices.map(p => ((p - base) / base) * 100);
-
     return {
       label: coin,
       data: percentChanges,
@@ -247,10 +316,10 @@
     }
   });
 
-  setTimeout(() => location.reload(), 300000); // Refresh every 5 minutes
-
-  // 🟢 LocalStorage User-Specific Coin Selection
+  setTimeout(() => location.reload(), 300000); // Refresh every 5 min
   document.addEventListener('DOMContentLoaded', function () {
+    updateDogFace();
+    setInterval(updateDogFace, 60000); // Update dog face every minute
     const savedCoins = JSON.parse(localStorage.getItem('selectedCoins'));
     if (savedCoins && savedCoins.length > 0) {
       Array.from(coinSelector.options).forEach(option => {
@@ -258,7 +327,6 @@
       });
       inputField.value = savedCoins.join(',');
     }
-
     const form = document.querySelector('form');
     if (form) {
       form.addEventListener('submit', function() {
