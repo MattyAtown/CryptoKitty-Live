@@ -19,19 +19,18 @@
     h1 {
       font-size: 2.5em;
       text-shadow: 0 0 10px #00e0ff;
+      margin-bottom: 10px;
     }
-    .top-right-logo {
-      position: absolute;
-      top: 10px;
-      right: 20px;
+    .top-bar {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
+      margin-bottom: 20px;
     }
-    .top-right-logo img {
-      max-width: 100px;
-      height: auto;
-      filter: drop-shadow(0 0 8px #00e0ff);
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
     .cryptoDogToggle {
       background: #111;
@@ -40,11 +39,15 @@
       padding: 8px 12px;
       border-radius: 10px;
       cursor: pointer;
-      z-index: 9999;
       font-weight: bold;
     }
+    .top-right-logo img {
+      max-width: 100px;
+      height: auto;
+      filter: drop-shadow(0 0 8px #00e0ff);
+    }
     .alert-banner {
-      padding: 15px;
+      padding: 10px;
       margin-bottom: 20px;
       text-align: center;
       font-weight: bold;
@@ -72,20 +75,39 @@
       color: #00f0ff;
       border: 1px solid #00f0ff;
     }
+    .content-row {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .left-panel {
+      width: 250px;
+    }
+    .center-panel {
+      flex: 1;
+    }
+    .right-panel {
+      width: 250px;
+      text-align: center;
+    }
+    .cryptoDogWidget {
+      background: #111;
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid #00ffcc;
+      box-shadow: 0 0 15px #00ffcc;
+    }
+    .cryptoDogWidget img {
+      width: 100%;
+      border-radius: 10px;
+    }
     .chart-panel {
       background: #111;
       padding: 20px;
       border-radius: 10px;
-      max-width: 500px;
       box-shadow: 0 0 20px #00f0ff;
-      margin-left: auto;
-    }
-    .cryptoDog-panel {
-      background: #111;
-      padding: 20px;
-      border-radius: 10px;
-      width: 250px;
-      box-shadow: 0 0 20px #00ffcc;
+      margin-top: 30px;
     }
     canvas {
       width: 100% !important;
@@ -103,35 +125,37 @@
 </head>
 <body>
 
-<!-- 🔥 Top Logo and CryptoDog Toggle -->
-<div class="top-right-logo">
-  <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
-  <img src="{{ url_for('static', filename='logo.png') }}" alt="CryptoDog Logo" />
-</div>
-
-<!-- 💥 Flashing Banner -->
-{% set banner_messages = [] %}
-{% for coin, trend in trends.items() %}
-  {% if trend == 'WARNING' %}
-    {% set _ = banner_messages.append("🚨 WARNING: " ~ coin ~ " is falling fast!") %}
-  {% elif trend == 'RISER' %}
-    {% set _ = banner_messages.append("📈 RISING: " ~ coin ~ " is surging upward!") %}
-  {% endif %}
-{% endfor %}
-
-{% if banner_messages %}
-  <div class="alert-banner">
-    {{ banner_messages[0] }}
-  </div>
-{% endif %}
-
-<!-- 🐱 CryptoKitty Core -->
 <div class="main-wrapper">
-  <h1>🐱 CryptoKitty Elite Tracker</h1>
+  <!-- 🔥 Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1>🐱 CryptoKitty Elite Tracker</h1>
+      <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
+    </div>
+    <div class="top-right-logo">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" />
+    </div>
+  </div>
 
-  <div style="display: flex; gap: 40px; align-items: flex-start;">
-    <!-- 🖱️ Coin Selector -->
-    <div style="width: 250px;">
+  <!-- 💥 Flashing Banner -->
+  {% set banner_messages = [] %}
+  {% for coin, trend in trends.items() %}
+    {% if trend == 'WARNING' %}
+      {% set _ = banner_messages.append("🚨 WARNING: " ~ coin ~ " is falling fast!") %}
+    {% elif trend == 'RISER' %}
+      {% set _ = banner_messages.append("📈 RISING: " ~ coin ~ " is surging upward!") %}
+    {% endif %}
+  {% endfor %}
+  {% if banner_messages %}
+    <div class="alert-banner">
+      {{ banner_messages[0] }}
+    </div>
+  {% endif %}
+
+  <!-- 🖱️ 3 Column Layout -->
+  <div class="content-row">
+    <!-- Left - Coin Selector -->
+    <div class="left-panel">
       <h2>Select Coins</h2>
       <form method="POST">
         <select id="coinSelector" multiple size="10">
@@ -144,48 +168,44 @@
       </form>
     </div>
 
-    <!-- 📊 Prices, CryptoDog, and Chart Area -->
-    <div style="flex: 1; display: flex; gap: 20px; align-items: flex-start;">
-      <!-- Prices Panel -->
-      <div style="flex: 2;">
-        <h2>📈 Prices & Change</h2>
-        <ul>
-          {% for coin in selected %}
-            <li>
-              {{ coin }}: {{ prices.get(coin, "Loading...") }}
-              {% set trend = trends.get(coin, "Stable") %}
-              <span class="badge {{ trend|lower }}">{{ trend }}</span>
-            </li>
-          {% endfor %}
-        </ul>
+    <!-- Center - Prices -->
+    <div class="center-panel">
+      <h2>📈 Prices & Change</h2>
+      <ul>
+        {% for coin in selected %}
+          <li>
+            {{ coin }}: {{ prices.get(coin, "Loading...") }}
+            {% set trend = trends.get(coin, "Stable") %}
+            <span class="badge {{ trend|lower }}">{{ trend }}</span>
+          </li>
+        {% endfor %}
+      </ul>
 
-        <h3>🚀 Top Risers</h3>
-        <ul>
-          {% for coin, gain in top_risers.items() %}
-            <li>{{ coin }}: +{{ gain }}</li>
-          {% endfor %}
-        </ul>
+      <h3>🚀 Top Risers</h3>
+      <ul>
+        {% for coin, gain in top_risers.items() %}
+          <li>{{ coin }}: +{{ gain }}</li>
+        {% endfor %}
+      </ul>
+    </div>
 
-        <div class="chart-panel">
-          <h3 style="text-align:center;">📊 % Change Chart</h3>
-          <canvas id="priceChart"></canvas>
-        </div>
-      </div>
-
-      <!-- CryptoDog Panel -->
-      <div class="cryptoDog-panel">
-        <h2 style="text-align: center;">🐶 CryptoDog</h2>
-        <div id="cryptoDogWidget" style="display: block;">
-          <div id="cryptoDogBanner">CryptoDog is standing by...</div>
-          <img id="dogFace" src="/static/neutral.png" alt="Dog Clock Face" style="width: 100%; border-radius: 12px;" />
-          <div class="status" id="statusText">Observation Mode. No Alerts.</div>
-          <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
-          <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
-          <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
-        </div>
+    <!-- Right - CryptoDog -->
+    <div class="right-panel">
+      <div id="cryptoDogWidget" class="cryptoDogWidget" style="display: block;">
+        <img id="dogFace" src="/static/neutral.png" alt="Dog Face" />
+        <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
+        <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
+        <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
       </div>
     </div>
   </div>
+
+  <!-- 📈 Chart Panel -->
+  <div class="chart-panel">
+    <h3 style="text-align: center;">📊 % Change Chart</h3>
+    <canvas id="priceChart"></canvas>
+  </div>
+
 </div>
 
 <!-- 🕓 Timestamp -->
@@ -193,7 +213,6 @@
 
 <!-- 🧠 Scripts -->
 <script>
-  // CryptoDog Functions
   function toggleCryptoDog() {
     const widget = document.getElementById("cryptoDogWidget");
     const isVisible = widget.style.display !== "none";
@@ -216,39 +235,23 @@
     const now = getAESTTime();
     const hour = now.getHours();
     const minute = now.getMinutes();
-    const faceImg = document.getElementById("dogFace");
-    const statusText = document.getElementById("statusText");
-    const banner = document.getElementById("cryptoDogBanner");
-    const bark = document.getElementById("bark");
-    const growl = document.getElementById("growl");
-    const sniff = document.getElementById("sniff");
 
     let face = "neutral";
-    let bannerText = "CryptoDog is standing by...";
-    let status = "Observation Mode. No Alerts.";
     let sound = null;
 
     if ([3, 15, 20].includes(hour) && minute <= 30) {
       face = "angry";
-      bannerText = "Selling Alert!";
-      status = `Market Dip Warning (${hour}:${minute.toString().padStart(2, '0')} AEST)`;
-      sound = growl;
+      sound = document.getElementById("growl");
     } else if ([7, 11, 12, 17, 21].includes(hour) && minute <= 30) {
       face = "happy";
-      bannerText = "Buying Alert!";
-      status = `Buy Signal (${hour}:${minute.toString().padStart(2, '0')} AEST)`;
-      sound = bark;
+      sound = document.getElementById("bark");
     } else {
       face = "excited";
-      bannerText = "Market Activity UP/Down";
-      status = `Sniffing Hour (${hour}:${minute.toString().padStart(2, '0')} AEST)`;
-      sound = sniff;
+      sound = document.getElementById("sniff");
     }
 
-    if (faceImg) faceImg.src = `/static/${face}.png`;
-    if (banner) banner.textContent = bannerText;
-    if (statusText) statusText.textContent = status;
-    if (sound) sound.play().catch(() => {});
+    document.getElementById("dogFace").src = `/static/${face}.png`;
+    sound?.play().catch(() => {});
   }
 
   document.addEventListener('DOMContentLoaded', function () {
