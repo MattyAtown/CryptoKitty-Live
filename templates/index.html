@@ -5,7 +5,6 @@
   <title>CryptoKitty Elite</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* 🔵 Your existing styles (no changes) */
     body {
       background: #0d0d0d;
       color: #00f0ff;
@@ -14,20 +13,110 @@
       margin: 0;
       overflow-x: hidden;
     }
-    /* (All your CSS remains unchanged for brevity) */
-    /* ... */
+    .main-wrapper {
+      padding: 40px;
+    }
+    h1 {
+      font-size: 2.5em;
+      text-shadow: 0 0 10px #00e0ff;
+    }
+    .top-right-logo {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .top-right-logo img {
+      max-width: 100px;
+      height: auto;
+      filter: drop-shadow(0 0 8px #00e0ff);
+    }
+    .cryptoDogToggle {
+      background: #111;
+      color: #00f0ff;
+      border: 2px solid #00f0ff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 9999;
+      font-weight: bold;
+    }
+    .alert-banner {
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1em;
+      border: 2px solid #ff00f7;
+      background-color: #210025;
+      color: #ff00f7;
+      box-shadow: 0 0 15px #ff00f7;
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: bold;
+      margin-left: 10px;
+      text-shadow: 0 0 4px #000;
+    }
+    .riser { background-color: #00e676; color: black; }
+    .warning { background-color: #ff1744; color: white; }
+    .stable { background-color: #555; color: white; }
+    select {
+      width: 100%;
+      padding: 6px;
+      background-color: #111;
+      color: #00f0ff;
+      border: 1px solid #00f0ff;
+    }
+    .chart-panel {
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      box-shadow: 0 0 20px #00f0ff;
+      margin-left: auto;
+    }
+    canvas {
+      width: 100% !important;
+      height: 300px !important;
+    }
+    .timestamp {
+      position: fixed;
+      bottom: 10px;
+      right: 20px;
+      color: #888;
+      font-size: 0.85em;
+      text-shadow: 0 0 6px #00e0ff;
+    }
   </style>
 </head>
 <body>
 
-<!-- 💥 Flashing Banner and Top Logo (your existing structure) -->
-<!-- ... -->
+<!-- 🔥 Top Logo and CryptoDog Toggle -->
 <div class="top-right-logo">
   <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
   <img src="{{ url_for('static', filename='logo.png') }}" alt="CryptoDog Logo" />
 </div>
 
-<!-- 🐶 CryptoDog Widget, already included -->
+<!-- 💥 Flashing Banner -->
+{% set banner_messages = [] %}
+{% for coin, trend in trends.items() %}
+  {% if trend == 'WARNING' %}
+    {% set _ = banner_messages.append("🚨 WARNING: " ~ coin ~ " is falling fast!") %}
+  {% elif trend == 'RISER' %}
+    {% set _ = banner_messages.append("📈 RISING: " ~ coin ~ " is surging upward!") %}
+  {% endif %}
+{% endfor %}
+
+{% if banner_messages %}
+  <div class="alert-banner">
+    {{ banner_messages[0] }}
+  </div>
+{% endif %}
 
 <!-- 🐱 CryptoKitty Core -->
 <div class="main-wrapper">
@@ -48,39 +137,16 @@
       </form>
     </div>
 
-    <!-- 📊 Results + Chart (your existing layout) -->
+    <!-- 📊 Results + Chart -->
     <div style="display: flex; flex: 1; gap: 40px; align-items: flex-start;">
-      <div style="flex: 1;">
-        <h2>🐶 CryptoDog</h2>
-        <div id="cryptoDogWidget" style="display:none; position: static; width: 100%; background-color: rgba(34, 34, 34, 0.95); border: 2px solid #00ffcc; border-radius: 12px; padding: 8px; box-shadow: 0 0 10px #00ffcc;">
-          <div id="cryptoDogBanner">CryptoDog is standing by...</div>
-          <img id="dogFace" src="/static/neutral.png" alt="Dog Clock Face" style="width: 100%; border-radius: 12px;" />
-          <div class="status" id="statusText">Observation Mode. No Alerts.</div>
-        </div>
-      </div>
-
       <div style="flex: 1;">
         <h2>📈 Prices & Change</h2>
         <ul>
           {% for coin in selected %}
             <li>
-              {{ coin }}:
-              {{ prices.get(coin, "Loading...") }}
+              {{ coin }}: {{ prices.get(coin, "Loading...") }}
               {% set trend = trends.get(coin, "Stable") %}
               <span class="badge {{ trend|lower }}">{{ trend }}</span>
-              {% set history = price_history.get(coin, []) %}
-              {% if history|length >= 2 %}
-                {% set old = history[0] %}
-                {% set new = history[-1] %}
-                {% if old != 0 %}
-                  {% set diff = ((new - old) / old) * 100 %}
-                  {% if diff >= 0 %}
-                    <span class="percent-up">(+{{ diff|round(2) }}%) ↑</span>
-                  {% else %}
-                    <span class="percent-down">({{ diff|round(2) }}%) ↓</span>
-                  {% endif %}
-                {% endif %}
-              {% endif %}
             </li>
           {% endfor %}
         </ul>
@@ -93,9 +159,8 @@
         </ul>
       </div>
 
-      <!-- 📈 Chart Panel -->
       <div class="chart-panel">
-        <h3 style="text-align:center; margin-top: 0;">📊 % Change Chart</h3>
+        <h3 style="text-align:center;">📊 % Change Chart</h3>
         <canvas id="priceChart"></canvas>
       </div>
     </div>
@@ -105,9 +170,8 @@
 <!-- 🕓 Timestamp -->
 <div class="timestamp" id="timestamp">Last refreshed: --:--:--</div>
 
-<!-- 🔥 CryptoKitty & CryptoDog Scripts (unchanged, plus new added) -->
+<!-- 🔥 Scripts: CryptoDog, CryptoKitty Core, and LocalStorage Fix -->
 <script>
-  // Existing CryptoDog script, timestamp updater, chart builder, etc.
   const coinSelector = document.getElementById('coinSelector');
   const inputField = document.getElementById('selectedCoinsInput');
   const selectedCoins = new Set(inputField.value.split(','));
@@ -140,8 +204,6 @@
     const prices = rawHistory[coin] || [];
     const base = prices[0] || 1;
     const percentChanges = prices.map(p => ((p - base) / base) * 100);
-    const isFlat = percentChanges.every(v => v === 0);
-    if (isFlat) console.warn(`⚠️ ${coin} appears flat (no % change)`);
 
     return {
       label: coin,
@@ -187,28 +249,25 @@
 
   setTimeout(() => location.reload(), 300000); // Refresh every 5 minutes
 
-  // 🔵 NEW: Save and Load User-Selected Coins Per Device
+  // 🟢 LocalStorage User-Specific Coin Selection
   document.addEventListener('DOMContentLoaded', function () {
-    const selector = document.getElementById('coinSelector');
-    const hiddenInput = document.getElementById('selectedCoinsInput');
-
-    // Load saved coins
-    const saved = JSON.parse(localStorage.getItem('selectedCoins'));
-    if (saved && saved.length > 0) {
-      Array.from(selector.options).forEach(option => {
-        option.selected = saved.includes(option.value);
+    const savedCoins = JSON.parse(localStorage.getItem('selectedCoins'));
+    if (savedCoins && savedCoins.length > 0) {
+      Array.from(coinSelector.options).forEach(option => {
+        option.selected = savedCoins.includes(option.value);
       });
-      hiddenInput.value = saved.join(',');
+      inputField.value = savedCoins.join(',');
     }
 
     const form = document.querySelector('form');
     if (form) {
       form.addEventListener('submit', function() {
-        const selected = Array.from(selector.selectedOptions).map(o => o.value);
+        const selected = Array.from(coinSelector.selectedOptions).map(o => o.value);
         localStorage.setItem('selectedCoins', JSON.stringify(selected));
       });
     }
   });
 </script>
+
 </body>
 </html>
