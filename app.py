@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import threading
 import time
+import os  # ✅ For picking up dynamic PORT from Render
 
 app = Flask(__name__)
 
@@ -43,24 +44,29 @@ def get_top_risers():
         for coin, history in price_history.items() if len(history) >= 2
     }.items(), key=lambda x: x[1], reverse=True)[:3])
 
+# ✅ Updated safer price_updater
 def price_updater():
     global prices
     while True:
-        if selected_coins:
-            print(f"[UPDATE] Fetching prices for: {selected_coins}")
-            for coin in selected_coins:
-                price = get_coinbase_price(coin)
-                if price:
-                    prices[coin] = price
-                    update_price_history(coin, price)
-        time.sleep(300)  # Every 5 minutes
+        try:
+            if selected_coins:
+                print(f"[UPDATE] Fetching prices for: {selected_coins}")
+                for coin in selected_coins:
+                    price = get_coinbase_price(coin)
+                    if price:
+                        prices[coin] = price
+                        update_price_history(coin, price)
+            time.sleep(300)  # Sleep for 5 minutes before next update
+        except Exception as e:
+            print(f"[ERROR] Price updater failed: {e}")
+            time.sleep(10)  # Wait 10 seconds before retrying
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     global selected_coins
     if request.method == "POST":
         form_data = request.form.get("coins", "")
-        selected_coins = [c for c in form_data.split(",") if c]  # ✅ Removes empty entries
+        selected_coins = [c for c in form_data.split(",") if c]
 
     trends = {coin: check_trend(coin) for coin in selected_coins}
     top_risers = get_top_risers()
@@ -93,4 +99,7 @@ def get_risers():
 if __name__ == "__main__":
     print("🚀 Starting CryptoKitty + CryptoDog App...")
     threading.Thread(target=price_updater, daemon=True).start()
-    app.run(debug=True, port=10000)
+
+    # ✅ Correct binding for Render
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host="0.0.0.0", port=port)
