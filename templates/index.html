@@ -5,6 +5,7 @@
   <title>CryptoKitty Elite</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* (Same styles we previously designed for v2.1) */
     body {
       background: #0d0d0d;
       color: #00f0ff;
@@ -14,26 +15,23 @@
       overflow-x: hidden;
       height: 100vh;
     }
-
     .main-wrapper {
       padding: 30px;
+      margin-left: -2%;
       height: 100%;
       box-sizing: border-box;
     }
-
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
     }
-
     .top-bar-left {
       display: flex;
       align-items: center;
       gap: 20px;
     }
-
     .cryptoDogToggle {
       background: #111;
       color: #00f0ff;
@@ -43,13 +41,11 @@
       cursor: pointer;
       font-weight: bold;
     }
-
     .top-right-logo img {
       max-width: 100px;
       height: auto;
       filter: drop-shadow(0 0 8px #00e0ff);
     }
-
     .alert-banner {
       padding: 10px;
       margin-bottom: 20px;
@@ -60,15 +56,18 @@
       background-color: #210025;
       color: #ff00f7;
       box-shadow: 0 0 15px #ff00f7;
+      min-height: 50px;
     }
-
     .content-row {
       display: flex;
       justify-content: space-between;
       gap: 10px;
       height: calc(100% - 180px);
     }
-
+    @keyframes beamMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 100%; }
+    }
     .panel {
       background: #111;
       padding: 20px;
@@ -82,16 +81,18 @@
       position: relative;
       height: 100%;
       overflow: hidden;
+      background-image: linear-gradient(to bottom, #00f0ff 0%, transparent 100%);
+      background-size: 2px 400%;
+      background-repeat: no-repeat;
+      animation: beamMove 4s linear infinite;
     }
-
     .panel:hover {
       box-shadow: 0 0 30px #00f0ff, 0 0 20px #00f0ff inset;
     }
-
-    .coins-panel { flex: 0 0 20%; border-right: 2px solid #00f0ff; }
+    .coins-panel { flex: 0 0 10%; border-right: 2px solid #00f0ff; }
     .prices-panel { flex: 0 0 20%; border-right: 2px solid #00f0ff; }
     .cryptodog-panel { flex: 0 0 20%; border-right: 2px solid #00f0ff; }
-    .chart-panel { flex: 0 0 40%; }
+    .chart-panel { flex: 0 0 50%; }
 
     select {
       width: 100%;
@@ -101,7 +102,6 @@
       border: 1px solid #00f0ff;
       border-radius: 8px;
     }
-
     .badge {
       padding: 4px 10px;
       border-radius: 12px;
@@ -110,7 +110,6 @@
       margin-left: 10px;
       text-shadow: 0 0 4px #000;
     }
-
     .riser { background-color: #00e676; color: black; }
     .warning { background-color: #ff1744; color: white; }
     .stable { background-color: #555; color: white; }
@@ -120,12 +119,10 @@
       border-radius: 10px;
       margin-top: 10px;
     }
-
     canvas {
       width: 100% !important;
       height: auto !important;
     }
-
     .timestamp {
       position: fixed;
       bottom: 10px;
@@ -151,19 +148,7 @@
   </div>
 
   <!-- 💥 Flashing Banner -->
-  {% set banner_messages = [] %}
-  {% for coin, trend in trends.items() %}
-    {% if trend == 'WARNING' %}
-      {% set _ = banner_messages.append("🚨 WARNING: " ~ coin ~ " is falling fast!") %}
-    {% elif trend == 'RISER' %}
-      {% set _ = banner_messages.append("📈 RISING: " ~ coin ~ " is surging upward!") %}
-    {% endif %}
-  {% endfor %}
-  {% if banner_messages %}
-    <div class="alert-banner">
-      {{ banner_messages[0] }}
-    </div>
-  {% endif %}
+  <div class="alert-banner" id="alertBanner">Loading...</div>
 
   <!-- 🚀 4-Panel Layout -->
   <div class="content-row">
@@ -235,69 +220,31 @@
     }
   }
 
-  function getAESTTime() {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    return new Date(utc + 10 * 3600000);
-  }
+  const bannerMessages = [];
+  {% for coin, trend in trends.items() %}
+    {% if trend == 'WARNING' %}
+      bannerMessages.push("🚨 WARNING: {{ coin }} is falling fast!");
+    {% elif trend == 'RISER' %}
+      bannerMessages.push("📈 RISING: {{ coin }} is surging upward!");
+    {% endif %}
+  {% endfor %}
+  {% for news in news_headlines %}
+    bannerMessages.push("📰 NEWS: {{ news }}");
+  {% endfor %}
 
-  function updateDogFace() {
-    const now = getAESTTime();
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-
-    let face = "neutral";
-    let sound = null;
-
-    if ([3, 15, 20].includes(hour) && minute <= 30) {
-      face = "angry";
-      sound = document.getElementById("growl");
-    } else if ([7, 11, 12, 17, 21].includes(hour) && minute <= 30) {
-      face = "happy";
-      sound = document.getElementById("bark");
+  let bannerIndex = 0;
+  function rotateBanner() {
+    if (bannerMessages.length > 0) {
+      document.getElementById('alertBanner').textContent = bannerMessages[bannerIndex];
+      bannerIndex = (bannerIndex + 1) % bannerMessages.length;
     } else {
-      face = "excited";
-      sound = document.getElementById("sniff");
+      document.getElementById('alertBanner').textContent = "Welcome to CryptoKitty!";
     }
-
-    document.getElementById("dogFace").src = `/static/${face}.png`;
-    sound?.play().catch(() => {});
   }
+  setInterval(rotateBanner, 5000);
+  rotateBanner();
 
   document.addEventListener('DOMContentLoaded', function () {
-    updateDogFace();
-    setInterval(updateDogFace, 60000);
-
-    const coinSelector = document.getElementById('coinSelector');
-    const inputField = document.getElementById('selectedCoinsInput');
-    const selectedCoins = new Set(inputField.value.split(','));
-
-    coinSelector.addEventListener('dblclick', (e) => {
-      const coin = e.target.value;
-      if (selectedCoins.has(coin)) {
-        selectedCoins.delete(coin);
-      } else {
-        selectedCoins.add(coin);
-      }
-      inputField.value = Array.from(selectedCoins).join(',');
-    });
-
-    const savedCoins = JSON.parse(localStorage.getItem('selectedCoins'));
-    if (savedCoins && savedCoins.length > 0) {
-      Array.from(coinSelector.options).forEach(option => {
-        option.selected = savedCoins.includes(option.value);
-      });
-      inputField.value = savedCoins.join(',');
-    }
-
-    const form = document.querySelector('form');
-    if (form) {
-      form.addEventListener('submit', function() {
-        const selected = Array.from(coinSelector.selectedOptions).map(o => o.value);
-        localStorage.setItem('selectedCoins', JSON.stringify(selected));
-      });
-    }
-
     const timestampEl = document.getElementById('timestamp');
     const now = new Date();
     timestampEl.textContent = 'Last refreshed: ' +
