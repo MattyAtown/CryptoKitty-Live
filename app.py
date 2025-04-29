@@ -44,7 +44,18 @@ def get_top_risers():
         for coin, history in price_history.items() if len(history) >= 2
     }.items(), key=lambda x: x[1], reverse=True)[:3])
 
-# ✅ Updated safer price_updater
+def get_crypto_news():
+    try:
+        url = "https://api.coinstats.app/public/v1/news?skip=0&limit=5&category=cryptocurrency"
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        headlines = [article["title"] for article in data.get("news", [])]
+        return headlines
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch news: {e}")
+        return []
+
 def price_updater():
     global prices
     while True:
@@ -59,7 +70,7 @@ def price_updater():
             time.sleep(300)  # Sleep for 5 minutes before next update
         except Exception as e:
             print(f"[ERROR] Price updater failed: {e}")
-            time.sleep(10)  # Wait 10 seconds before retrying
+            time.sleep(10)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -70,6 +81,7 @@ def index():
 
     trends = {coin: check_trend(coin) for coin in selected_coins}
     top_risers = get_top_risers()
+    news_headlines = get_crypto_news()  # ✅ NEW: Get live news headlines
 
     return render_template("index.html",
         coins=supported_coins,
@@ -77,7 +89,8 @@ def index():
         prices=prices,
         trends=trends,
         top_risers=top_risers,
-        price_history=price_history
+        price_history=price_history,
+        news_headlines=news_headlines  # ✅ NEW: Pass news to frontend
     )
 
 @app.route("/prices")
@@ -97,9 +110,8 @@ def get_risers():
     return jsonify(get_top_risers())
 
 if __name__ == "__main__":
-    print("🚀 Starting CryptoKitty + CryptoDog App...")
+    print("🚀 Starting CryptoKitty + CryptoDog + NewsFlash App...")
     threading.Thread(target=price_updater, daemon=True).start()
 
-    # ✅ Correct binding for Render
     port = int(os.environ.get('PORT', 10000))
     app.run(host="0.0.0.0", port=port)
