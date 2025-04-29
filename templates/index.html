@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>CryptoKitty Elite</title>
+  <meta charset="UTF-8">
+  <title>CryptoKitty Elite v2.2</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* (Same styles we previously designed for v2.1) */
+    /* Page and Layout Styles */
     body {
       background: #0d0d0d;
       color: #00f0ff;
@@ -15,23 +15,33 @@
       overflow-x: hidden;
       height: 100vh;
     }
+
     .main-wrapper {
-      padding: 30px;
+      padding: 20px;
       margin-left: -2%;
-      height: 100%;
       box-sizing: border-box;
+      height: 100%;
     }
+
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
+
     .top-bar-left {
       display: flex;
       align-items: center;
       gap: 20px;
     }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
     .cryptoDogToggle {
       background: #111;
       color: #00f0ff;
@@ -41,14 +51,16 @@
       cursor: pointer;
       font-weight: bold;
     }
+
     .top-right-logo img {
       max-width: 100px;
       height: auto;
       filter: drop-shadow(0 0 8px #00e0ff);
     }
+
     .alert-banner {
       padding: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       text-align: center;
       font-weight: bold;
       font-size: 1.1em;
@@ -58,16 +70,19 @@
       box-shadow: 0 0 15px #ff00f7;
       min-height: 50px;
     }
+
     .content-row {
       display: flex;
       justify-content: space-between;
       gap: 10px;
-      height: calc(100% - 180px);
+      height: calc(100% - 160px);
     }
+
     @keyframes beamMove {
       0% { background-position: 0 0; }
       100% { background-position: 0 100%; }
     }
+
     .panel {
       background: #111;
       padding: 20px;
@@ -78,17 +93,17 @@
       align-items: center;
       justify-content: flex-start;
       transition: box-shadow 0.3s ease;
-      position: relative;
-      height: 100%;
-      overflow: hidden;
       background-image: linear-gradient(to bottom, #00f0ff 0%, transparent 100%);
       background-size: 2px 400%;
       background-repeat: no-repeat;
       animation: beamMove 4s linear infinite;
+      overflow: hidden;
     }
+
     .panel:hover {
       box-shadow: 0 0 30px #00f0ff, 0 0 20px #00f0ff inset;
     }
+
     .coins-panel { flex: 0 0 10%; border-right: 2px solid #00f0ff; }
     .prices-panel { flex: 0 0 20%; border-right: 2px solid #00f0ff; }
     .cryptodog-panel { flex: 0 0 20%; border-right: 2px solid #00f0ff; }
@@ -102,6 +117,7 @@
       border: 1px solid #00f0ff;
       border-radius: 8px;
     }
+
     .badge {
       padding: 4px 10px;
       border-radius: 12px;
@@ -110,6 +126,7 @@
       margin-left: 10px;
       text-shadow: 0 0 4px #000;
     }
+
     .riser { background-color: #00e676; color: black; }
     .warning { background-color: #ff1744; color: white; }
     .stable { background-color: #555; color: white; }
@@ -119,10 +136,12 @@
       border-radius: 10px;
       margin-top: 10px;
     }
+
     canvas {
       width: 100% !important;
       height: auto !important;
     }
+
     .timestamp {
       position: fixed;
       bottom: 10px;
@@ -135,15 +154,18 @@
 </head>
 
 <body>
+
 <div class="main-wrapper">
   <!-- 🔥 Top Bar -->
   <div class="top-bar">
     <div class="top-bar-left">
       <h1>🐱 CryptoKitty Elite Tracker</h1>
-      <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
     </div>
-    <div class="top-right-logo">
-      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" />
+    <div class="top-bar-right">
+      <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
+      <div class="top-right-logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" />
+      </div>
     </div>
   </div>
 
@@ -213,11 +235,6 @@
   function toggleCryptoDog() {
     const widget = document.getElementById("cryptoDogWidget");
     widget.style.display = (widget.style.display === "none") ? "block" : "none";
-    if (widget.style.display === "none") {
-      document.getElementById("bark")?.pause();
-      document.getElementById("growl")?.pause();
-      document.getElementById("sniff")?.pause();
-    }
   }
 
   const bannerMessages = [];
@@ -245,6 +262,20 @@
   rotateBanner();
 
   document.addEventListener('DOMContentLoaded', function () {
+    const coinSelector = document.getElementById('coinSelector');
+    const inputField = document.getElementById('selectedCoinsInput');
+    const selectedCoins = new Set(inputField.value.split(','));
+
+    coinSelector.addEventListener('dblclick', (e) => {
+      const coin = e.target.value;
+      if (selectedCoins.has(coin)) {
+        selectedCoins.delete(coin);
+      } else {
+        selectedCoins.add(coin);
+      }
+      inputField.value = Array.from(selectedCoins).join(',');
+    });
+
     const timestampEl = document.getElementById('timestamp');
     const now = new Date();
     timestampEl.textContent = 'Last refreshed: ' +
