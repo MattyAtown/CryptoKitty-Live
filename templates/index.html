@@ -5,7 +5,6 @@
   <title>CryptoKitty Elite v2.2</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Page and Layout Styles */
     body {
       background: #0d0d0d;
       color: #00f0ff;
@@ -78,11 +77,6 @@
       height: calc(100% - 160px);
     }
 
-    @keyframes beamMove {
-      0% { background-position: 0 0; }
-      100% { background-position: 0 100%; }
-    }
-
     .panel {
       background: #111;
       padding: 20px;
@@ -98,10 +92,6 @@
       background-repeat: no-repeat;
       animation: beamMove 4s linear infinite;
       overflow: hidden;
-    }
-
-    .panel:hover {
-      box-shadow: 0 0 30px #00f0ff, 0 0 20px #00f0ff inset;
     }
 
     .coins-panel { flex: 0 0 10%; border-right: 2px solid #00f0ff; }
@@ -152,7 +142,179 @@
     }
   </style>
 </head>
-
 <body>
+<div class="main-wrapper">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1>🐱 CryptoKitty Elite Tracker</h1>
+    </div>
+    <div class="top-bar-right">
+      <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
+      <div class="top-right-logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" />
+      </div>
+    </div>
+  </div>
 
-<!-- truncated for brevity... rest of body stays the same as user's working version -->
+  <div class="alert-banner" id="alertBanner">Loading...</div>
+
+  <div class="content-row">
+    <div class="panel coins-panel">
+      <h2>Select Coins</h2>
+      <form method="POST">
+        <select id="coinSelector" multiple size="10">
+          {% for coin in coins %}
+            <option value="{{ coin }}" {% if coin in selected %}selected{% endif %}>{{ coin }}</option>
+          {% endfor %}
+        </select><br><br>
+        <input type="hidden" id="selectedCoinsInput" name="coins" value="{{ selected | join(',') }}">
+        <button type="submit">Update</button>
+      </form>
+    </div>
+
+    <div class="panel prices-panel">
+      <h2>📈 Prices & Change</h2>
+      <ul>
+        {% for coin in selected %}
+          <li>
+            {{ coin }}: {{ prices.get(coin, "Loading...") }}
+            {% set trend = trends.get(coin, "Stable") %}
+            <span class="badge {{ trend|lower }}">{{ trend }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      <h3>🚀 Top Risers</h3>
+      <ul>
+        {% for coin, gain in top_risers.items() %}
+          <li>{{ coin }}: +{{ gain }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="panel cryptodog-panel">
+      <h2>🐶 CryptoDog</h2>
+      <div id="cryptoDogWidget" style="display: none;">
+        <img id="dogFace" src="/static/neutral.png" alt="Dog Face" />
+        <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
+        <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
+        <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
+      </div>
+    </div>
+
+    <div class="panel chart-panel">
+      <h2>📊 Live Chart</h2>
+      <canvas id="priceChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="timestamp" id="timestamp">Last refreshed: --:--:--</div>
+
+<script>
+function toggleCryptoDog() {
+  const widget = document.getElementById("cryptoDogWidget");
+  widget.style.display = (widget.style.display === "none") ? "block" : "none";
+}
+
+const bannerMessages = [];
+{% for coin, trend in trends.items() %}
+  {% if trend == 'WARNING' %}
+    bannerMessages.push("🚨 WARNING: {{ coin }} is falling fast!");
+  {% elif trend == 'RISER' %}
+    bannerMessages.push("📈 RISING: {{ coin }} is surging upward!");
+  {% endif %}
+{% endfor %}
+{% for news in news_headlines %}
+  bannerMessages.push("📰 NEWS: {{ news }}");
+{% endfor %}
+
+let bannerIndex = 0;
+function rotateBanner() {
+  const banner = document.getElementById('alertBanner');
+  if (bannerMessages.length > 0) {
+    banner.textContent = bannerMessages[bannerIndex];
+    bannerIndex = (bannerIndex + 1) % bannerMessages.length;
+  } else {
+    banner.textContent = "Welcome to CryptoKitty!";
+  }
+}
+setInterval(rotateBanner, 5000);
+rotateBanner();
+
+document.addEventListener('DOMContentLoaded', function () {
+  const coinSelector = document.getElementById('coinSelector');
+  const inputField = document.getElementById('selectedCoinsInput');
+  const selectedCoins = new Set(inputField.value.split(','));
+
+  coinSelector.addEventListener('dblclick', (e) => {
+    const coin = e.target.value;
+    if (selectedCoins.has(coin)) {
+      selectedCoins.delete(coin);
+    } else {
+      selectedCoins.add(coin);
+    }
+    inputField.value = Array.from(selectedCoins).join(',');
+  });
+
+  const timestampEl = document.getElementById('timestamp');
+  const now = new Date();
+  timestampEl.textContent = 'Last refreshed: ' +
+    now.getHours().toString().padStart(2, '0') + ':' +
+    now.getMinutes().toString().padStart(2, '0') + ':' +
+    now.getSeconds().toString().padStart(2, '0');
+
+  const rawHistory = {{ price_history | tojson | safe }};
+  const selected = {{ selected | tojson | safe }};
+  const labels = Array.from({ length: 10 }, (_, i) => {
+    const minutesAgo = (9 - i) * 5;
+    return minutesAgo === 0 ? "Now" : `${minutesAgo} min ago`;
+  });
+
+  const datasets = selected.map((coin) => {
+    const prices = rawHistory[coin] || [];
+    const base = prices[0] || 1;
+    const percentChanges = prices.map(p => ((p - base) / base) * 100);
+    return {
+      label: coin,
+      data: percentChanges,
+      borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
+      pointRadius: 3,
+      borderWidth: 2,
+      fill: false,
+      tension: 0.3
+    };
+  });
+
+  new Chart(document.getElementById('priceChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: {
+            display: true,
+            text: '% Change'
+          },
+          ticks: {
+            callback: value => value.toFixed(1) + '%'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#fff'
+          }
+        }
+      }
+    });
+});
+</script>
+</body>
+</html>
