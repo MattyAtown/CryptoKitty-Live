@@ -72,7 +72,7 @@ def price_updater():
                     if price:
                         prices[coin] = price
                         update_price_history(coin, price)
-            time.sleep(300)  # Sleep for 5 minutes before next update
+            time.sleep(300)
         except Exception as e:
             print(f"[ERROR] Price updater failed: {e}")
             time.sleep(10)
@@ -86,7 +86,12 @@ def index():
 
     trends = {coin: check_trend(coin) for coin in selected_coins}
     top_risers = get_top_risers()
-    news_headlines = get_crypto_news()
+
+    news_headlines = []
+    try:
+        news_headlines = get_crypto_news()
+    except Exception as e:
+        print(f"[WARNING] Failed to fetch news safely in route: {e}")
 
     return render_template("index.html",
         coins=supported_coins,
