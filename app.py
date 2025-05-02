@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import threading
 import time
-import os  # ✅ For picking up dynamic PORT from Render
+import os
 
 app = Flask(__name__)
 
@@ -46,11 +46,16 @@ def get_top_risers():
 
 def get_crypto_news():
     try:
-        url = "https://api.coinstats.app/public/v1/news?skip=0&limit=5&category=cryptocurrency"
-        response = requests.get(url)
+        url = "https://openapi.coinstats.app/news/latest?limit=5"
+        headers = {
+            "accept": "application/json",
+            "X-API-KEY": "B8btcyebVUFRSFaE5U7z+xwoiN96M2VBSU/UQP7s3oc="
+        }
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
         headlines = [article["title"] for article in data.get("news", [])]
+        print(f"[NEWS] Headlines fetched: {headlines}")
         return headlines
     except Exception as e:
         print(f"[ERROR] Failed to fetch news: {e}")
@@ -81,7 +86,7 @@ def index():
 
     trends = {coin: check_trend(coin) for coin in selected_coins}
     top_risers = get_top_risers()
-    news_headlines = get_crypto_news()  # ✅ NEW: Get live news headlines
+    news_headlines = get_crypto_news()
 
     return render_template("index.html",
         coins=supported_coins,
@@ -90,7 +95,7 @@ def index():
         trends=trends,
         top_risers=top_risers,
         price_history=price_history,
-        news_headlines=news_headlines  # ✅ NEW: Pass news to frontend
+        news_headlines=news_headlines
     )
 
 @app.route("/prices")
@@ -112,6 +117,5 @@ def get_risers():
 if __name__ == "__main__":
     print("🚀 Starting CryptoKitty + CryptoDog + NewsFlash App...")
     threading.Thread(target=price_updater, daemon=True).start()
-
     port = int(os.environ.get('PORT', 10000))
     app.run(host="0.0.0.0", port=port)
