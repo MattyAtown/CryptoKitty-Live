@@ -237,17 +237,17 @@
     widget.style.display = (widget.style.display === "none") ? "block" : "none";
   }
 
-  const bannerMessages = [];
-  {% for coin, trend in trends.items() %}
-    {% if trend == 'WARNING' %}
-      bannerMessages.push("🚨 WARNING: {{ coin }} is falling fast!");
-    {% elif trend == 'RISER' %}
-      bannerMessages.push("📈 RISING: {{ coin }} is surging upward!");
-    {% endif %}
-  {% endfor %}
-  {% for news in news_headlines %}
-    bannerMessages.push("📰 NEWS: {{ news }}");
-  {% endfor %}
+const bannerMessages = [];
+{% for coin, trend in trends.items() %}
+  {% if trend == 'WARNING' %}
+    bannerMessages.push("🚨 WARNING: {{ coin }} is falling fast!");
+  {% elif trend == 'RISER' %}
+    bannerMessages.push("📈 RISING: {{ coin }} is surging upward!");
+  {% endif %}
+{% endfor %}
+{% for news in news_headlines %}
+  bannerMessages.push("📰 NEWS: {{ news }}");
+{% endfor %}
 
   let bannerIndex = 0;
   function rotateBanner() {
