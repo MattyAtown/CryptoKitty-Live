@@ -5,6 +5,7 @@
   <title>CryptoKitty Elite v2.2</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* Page and Layout Styles */
     body {
       background: #0d0d0d;
       color: #00f0ff;
@@ -77,6 +78,11 @@
       height: calc(100% - 160px);
     }
 
+    @keyframes beamMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 100%; }
+    }
+
     .panel {
       background: #111;
       padding: 20px;
@@ -92,6 +98,10 @@
       background-repeat: no-repeat;
       animation: beamMove 4s linear infinite;
       overflow: hidden;
+    }
+
+    .panel:hover {
+      box-shadow: 0 0 30px #00f0ff, 0 0 20px #00f0ff inset;
     }
 
     .coins-panel { flex: 0 0 10%; border-right: 2px solid #00f0ff; }
@@ -142,8 +152,11 @@
     }
   </style>
 </head>
+
 <body>
+
 <div class="main-wrapper">
+  <!-- 🔥 Top Bar -->
   <div class="top-bar">
     <div class="top-bar-left">
       <h1>🐱 CryptoKitty Elite Tracker</h1>
@@ -156,9 +169,12 @@
     </div>
   </div>
 
+  <!-- 💥 Flashing Banner -->
   <div class="alert-banner" id="alertBanner">Loading...</div>
 
+  <!-- 🚀 4-Panel Layout -->
   <div class="content-row">
+    <!-- Panel A - Coins -->
     <div class="panel coins-panel">
       <h2>Select Coins</h2>
       <form method="POST">
@@ -172,6 +188,7 @@
       </form>
     </div>
 
+    <!-- Panel B - Prices -->
     <div class="panel prices-panel">
       <h2>📈 Prices & Change</h2>
       <ul>
@@ -191,6 +208,7 @@
       </ul>
     </div>
 
+    <!-- Panel C - CryptoDog -->
     <div class="panel cryptodog-panel">
       <h2>🐶 CryptoDog</h2>
       <div id="cryptoDogWidget" style="display: none;">
@@ -201,6 +219,7 @@
       </div>
     </div>
 
+    <!-- Panel D - Chart -->
     <div class="panel chart-panel">
       <h2>📊 Live Chart</h2>
       <canvas id="priceChart"></canvas>
@@ -208,13 +227,15 @@
   </div>
 </div>
 
+<!-- 🕓 Timestamp -->
 <div class="timestamp" id="timestamp">Last refreshed: --:--:--</div>
 
+<!-- 🧠 Scripts -->
 <script>
-function toggleCryptoDog() {
-  const widget = document.getElementById("cryptoDogWidget");
-  widget.style.display = (widget.style.display === "none") ? "block" : "none";
-}
+  function toggleCryptoDog() {
+    const widget = document.getElementById("cryptoDogWidget");
+    widget.style.display = (widget.style.display === "none") ? "block" : "none";
+  }
 
 const bannerMessages = [];
 {% for coin, trend in trends.items() %}
@@ -228,93 +249,94 @@ const bannerMessages = [];
   bannerMessages.push("📰 NEWS: {{ news }}");
 {% endfor %}
 
-let bannerIndex = 0;
-function rotateBanner() {
-  const banner = document.getElementById('alertBanner');
-  if (bannerMessages.length > 0) {
-    banner.textContent = bannerMessages[bannerIndex];
-    bannerIndex = (bannerIndex + 1) % bannerMessages.length;
-  } else {
-    banner.textContent = "Welcome to CryptoKitty!";
-  }
-}
-setInterval(rotateBanner, 5000);
-rotateBanner();
-
-document.addEventListener('DOMContentLoaded', function () {
-  const coinSelector = document.getElementById('coinSelector');
-  const inputField = document.getElementById('selectedCoinsInput');
-  const selectedCoins = new Set(inputField.value.split(','));
-
-  coinSelector.addEventListener('dblclick', (e) => {
-    const coin = e.target.value;
-    if (selectedCoins.has(coin)) {
-      selectedCoins.delete(coin);
+  let bannerIndex = 0;
+  function rotateBanner() {
+    if (bannerMessages.length > 0) {
+      document.getElementById('alertBanner').textContent = bannerMessages[bannerIndex];
+      bannerIndex = (bannerIndex + 1) % bannerMessages.length;
     } else {
-      selectedCoins.add(coin);
+      document.getElementById('alertBanner').textContent = "Welcome to CryptoKitty!";
     }
-    inputField.value = Array.from(selectedCoins).join(',');
-  });
+  }
+  setInterval(rotateBanner, 5000);
+  rotateBanner();
 
-  const timestampEl = document.getElementById('timestamp');
-  const now = new Date();
-  timestampEl.textContent = 'Last refreshed: ' +
-    now.getHours().toString().padStart(2, '0') + ':' +
-    now.getMinutes().toString().padStart(2, '0') + ':' +
-    now.getSeconds().toString().padStart(2, '0');
+  document.addEventListener('DOMContentLoaded', function () {
+    const coinSelector = document.getElementById('coinSelector');
+    const inputField = document.getElementById('selectedCoinsInput');
+    const selectedCoins = new Set(inputField.value.split(','));
 
-  const rawHistory = {{ price_history | tojson | safe }};
-  const selected = {{ selected | tojson | safe }};
-  const labels = Array.from({ length: 10 }, (_, i) => {
-    const minutesAgo = (9 - i) * 5;
-    return minutesAgo === 0 ? "Now" : `${minutesAgo} min ago`;
-  });
+    coinSelector.addEventListener('dblclick', (e) => {
+      const coin = e.target.value;
+      if (selectedCoins.has(coin)) {
+        selectedCoins.delete(coin);
+      } else {
+        selectedCoins.add(coin);
+      }
+      inputField.value = Array.from(selectedCoins).join(',');
+    });
 
-  const datasets = selected.map((coin) => {
-    const prices = rawHistory[coin] || [];
-    const base = prices[0] || 1;
-    const percentChanges = prices.map(p => ((p - base) / base) * 100);
-    return {
-      label: coin,
-      data: percentChanges,
-      borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      pointRadius: 3,
-      borderWidth: 2,
-      fill: false,
-      tension: 0.3
-    };
-  });
+    const timestampEl = document.getElementById('timestamp');
+    const now = new Date();
+    timestampEl.textContent = 'Last refreshed: ' +
+      now.getHours().toString().padStart(2, '0') + ':' +
+      now.getMinutes().toString().padStart(2, '0') + ':' +
+      now.getSeconds().toString().padStart(2, '0');
 
-  new Chart(document.getElementById('priceChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: '% Change'
-          },
-          ticks: {
-            callback: value => value.toFixed(1) + '%'
-          }
-        }
+    const rawHistory = {{ price_history | tojson | safe }};
+    const selected = {{ selected | tojson | safe }};
+    const labels = Array.from({ length: 10 }, (_, i) => {
+      const minutesAgo = (9 - i) * 5;
+      return minutesAgo === 0 ? "Now" : `${minutesAgo} min ago`;
+    });
+
+    const datasets = selected.map((coin) => {
+      const prices = rawHistory[coin] || [];
+      const base = prices[0] || 1;
+      const percentChanges = prices.map(p => ((p - base) / base) * 100);
+      return {
+        label: coin,
+        data: percentChanges,
+        borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
+        pointRadius: 3,
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      };
+    });
+
+    new Chart(document.getElementById('priceChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets
       },
-      plugins: {
-        legend: {
-          labels: {
-            color: '#fff'
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: '% Change'
+            },
+            ticks: {
+              callback: value => value.toFixed(1) + '%'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#fff'
+            }
           }
         }
       }
     });
-});
+  });
 </script>
+
 </body>
 </html>
