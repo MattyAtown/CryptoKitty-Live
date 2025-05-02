@@ -245,6 +245,18 @@ const bannerMessages = [];
     bannerMessages.push("📈 RISING: {{ coin }} is surging upward!");
   {% endif %}
 {% endfor %}
+{% if news_headlines %}
+  {% for news in news_headlines %}
+    bannerMessages.push("📰 NEWS: {{ news }}");
+  {% endfor %}
+{% endif %}
+{% for coin, trend in trends.items() %}
+  {% if trend == 'WARNING' %}
+    bannerMessages.push("🚨 WARNING: {{ coin }} is falling fast!");
+  {% elif trend == 'RISER' %}
+    bannerMessages.push("📈 RISING: {{ coin }} is surging upward!");
+  {% endif %}
+{% endfor %}
 {% for news in news_headlines %}
   bannerMessages.push("📰 NEWS: {{ news }}");
 {% endfor %}
