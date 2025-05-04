@@ -1,19 +1,15 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify
 import requests
 import threading
 import time
 import os
-from collections import defaultdict
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "supersecretkey")
 
 supported_coins = ["BTC", "ETH", "SOL", "XRP", "ADA", "DOGE", "LTC", "DOT", "LINK", "AVAX"]
-user_data = defaultdict(lambda: {
-    "selected_coins": [],
-    "prices": {},
-    "price_history": {}
-})
+selected_coins = []
+prices = {}
+price_history = {}
 
 def get_coinbase_price(symbol):
     try:
@@ -26,14 +22,15 @@ def get_coinbase_price(symbol):
         print(f"[ERROR] Failed to get price for {symbol}: {e}")
         return None
 
-def update_price_history(data, symbol, price):
-    if symbol not in data["price_history"]:
-        data["price_history"][symbol] = []
-    data["price_history"][symbol].append(price)
-    if len(data["price_history"][symbol]) > 10:
-        data["price_history"][symbol].pop(0)
+def update_price_history(symbol, price):
+    if symbol not in price_history:
+        price_history[symbol] = []
+    price_history[symbol].append(price)
+    if len(price_history[symbol]) > 10:
+        price_history[symbol].pop(0)
 
-def check_trend(history):
+def check_trend(symbol):
+    history = price_history.get(symbol, [])
     if len(history) >= 3:
         if history[-3] > history[-2] > history[-1]:
             return "WARNING"
@@ -41,10 +38,10 @@ def check_trend(history):
             return "RISER"
     return "Stable"
 
-def get_top_risers(data):
+def get_top_risers():
     return dict(sorted({
         coin: round(history[-1] - history[0], 2)
-        for coin, history in data["price_history"].items() if len(history) >= 2
+        for coin, history in price_history.items() if len(history) >= 2
     }.items(), key=lambda x: x[1], reverse=True)[:3])
 
 def get_crypto_news():
@@ -58,79 +55,71 @@ def get_crypto_news():
         response.raise_for_status()
         data = response.json()
         headlines = [article["title"] for article in data.get("news", [])]
+        print(f"[NEWS] Headlines fetched: {headlines}")
         return headlines
     except Exception as e:
         print(f"[ERROR] Failed to fetch news: {e}")
         return []
 
 def price_updater():
+    global prices
     while True:
         try:
-            for sid, data in user_data.items():
-                if data["selected_coins"]:
-                    for coin in data["selected_coins"]:
-                        price = get_coinbase_price(coin)
-                        if price:
-                            data["prices"][coin] = price
-                            update_price_history(data, coin, price)
+            if selected_coins:
+                print(f"[UPDATE] Fetching prices for: {selected_coins}")
+                for coin in selected_coins:
+                    price = get_coinbase_price(coin)
+                    if price:
+                        prices[coin] = price
+                        update_price_history(coin, price)
+            time.sleep(60)  # Adjusted for quicker dev feedback
         except Exception as e:
             print(f"[ERROR] Price updater failed: {e}")
-        time.sleep(300)
+            time.sleep(10)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    sid = session.get("sid")
-    if not sid:
-        sid = os.urandom(16).hex()
-        session["sid"] = sid
-    data = user_data[sid]
-
+    global selected_coins
     if request.method == "POST":
         form_data = request.form.get("coins", "")
-        data["selected_coins"] = [c for c in form_data.split(",") if c]
+        selected_coins = [c for c in form_data.split(",") if c]
+    elif not selected_coins:
+        selected_coins = supported_coins.copy()  # Default selection on GET
 
-    trends = {
-        coin: check_trend(data["price_history"].get(coin, []))
-        for coin in data["selected_coins"]
-    }
+    trends = {coin: check_trend(coin) for coin in selected_coins}
+    top_risers = get_top_risers()
 
-    cryptodog_alerts = {
-        coin: f"CryptoDog growls! {coin} is in free fall!" if trend == "WARNING" else
-              f"CryptoDog barks excitedly! {coin} is surging!" if trend == "RISER" else ""
-        for coin, trend in trends.items()
-    }
+    news_headlines = []
+    try:
+        news_headlines = get_crypto_news()
+    except Exception as e:
+        print(f"[WARNING] Failed to fetch news safely in route: {e}")
 
     return render_template("index.html",
         coins=supported_coins,
-        selected=data["selected_coins"],
-        prices=data["prices"],
+        selected=selected_coins,
+        prices=prices,
         trends=trends,
-        top_risers=get_top_risers(data),
-        price_history=data["price_history"],
-        news_headlines=get_crypto_news(),
-        cryptodog_alerts=cryptodog_alerts
+        top_risers=top_risers,
+        price_history=price_history,
+        news_headlines=news_headlines
     )
 
 @app.route("/prices")
 def get_prices():
-    sid = session.get("sid")
-    return jsonify(user_data[sid]["prices"])
+    return jsonify(prices)
 
 @app.route("/history")
 def get_history():
-    sid = session.get("sid")
-    return jsonify(user_data[sid]["price_history"])
+    return jsonify(price_history)
 
 @app.route("/trends")
 def get_trends():
-    sid = session.get("sid")
-    data = user_data[sid]
-    return jsonify({coin: check_trend(data["price_history"].get(coin, [])) for coin in data["selected_coins"]})
+    return jsonify({coin: check_trend(coin) for coin in selected_coins})
 
 @app.route("/risers")
 def get_risers():
-    sid = session.get("sid")
-    return jsonify(get_top_risers(user_data[sid]))
+    return jsonify(get_top_risers())
 
 if __name__ == "__main__":
     print("🚀 Starting CryptoKitty + CryptoDog + NewsFlash App...")
