@@ -72,7 +72,7 @@ def price_updater():
                     if price:
                         prices[coin] = price
                         update_price_history(coin, price)
-            time.sleep(300)
+            time.sleep(60)  # Adjusted for quicker dev feedback
         except Exception as e:
             print(f"[ERROR] Price updater failed: {e}")
             time.sleep(10)
@@ -83,6 +83,8 @@ def index():
     if request.method == "POST":
         form_data = request.form.get("coins", "")
         selected_coins = [c for c in form_data.split(",") if c]
+    elif not selected_coins:
+        selected_coins = supported_coins.copy()  # Default selection on GET
 
     trends = {coin: check_trend(coin) for coin in selected_coins}
     top_risers = get_top_risers()
