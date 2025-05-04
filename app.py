@@ -80,15 +80,9 @@ def price_updater():
 @app.route("/", methods=["GET", "POST"])
 def index():
     global selected_coins
-
     if request.method == "POST":
         form_data = request.form.get("coins", "")
         selected_coins = [c for c in form_data.split(",") if c]
-    else:
-        # fallback if nothing is selected yet
-        selected_coins = selected_coins or ["BTC", "ETH", "SOL"]
-
-    print(f"[DEBUG] Selected coins: {selected_coins}")
 
     trends = {coin: check_trend(coin) for coin in selected_coins}
     top_risers = get_top_risers()
@@ -99,8 +93,6 @@ def index():
     except Exception as e:
         print(f"[WARNING] Failed to fetch news safely in route: {e}")
 
-    print(f"[DEBUG] News headlines: {news_headlines}")
-
     return render_template("index.html",
         coins=supported_coins,
         selected=selected_coins,
@@ -110,6 +102,7 @@ def index():
         price_history=price_history,
         news_headlines=news_headlines
     )
+
 @app.route("/prices")
 def get_prices():
     return jsonify(prices)
