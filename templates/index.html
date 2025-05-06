@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CryptoKitty Elite v2.5</title>
+  <title>CryptoKitty Elite v2.6</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -33,6 +33,7 @@
       color: #ff00f7;
       text-align: center;
       box-shadow: 0 0 15px #ff00f7;
+      min-height: 50px;
     }
     .content-row {
       display: flex;
@@ -68,11 +69,12 @@
 <body>
 <div class="main-wrapper">
   <div class="top-bar">
-    <h1>🐱 CryptoKitty Elite v2.5</h1>
+    <h1>🐱 CryptoKitty Elite v2.6</h1>
     <div class="top-right-logo">
       <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
     </div>
   </div>
+
   <div class="alert-banner" id="alertBanner">Welcome to CryptoKitty!</div>
 
   <form method="POST">
@@ -195,6 +197,39 @@
     now.getHours().toString().padStart(2, '0') + ':' +
     now.getMinutes().toString().padStart(2, '0') + ':' +
     now.getSeconds().toString().padStart(2, '0');
+
+  // Flashing Banner Rotation Logic
+  const bannerMessages = [];
+  {% for coin, trend in trends.items() %}
+    {% if trend == 'WARNING' %}
+      bannerMessages.push("🚨 WARNING: {{ coin }} is falling fast!");
+    {% elif trend == 'RISER' %}
+      bannerMessages.push("📈 RISING: {{ coin }} is surging upward!");
+    {% endif %}
+  {% endfor %}
+  {% if news_headlines %}
+    {% for news in news_headlines %}
+      bannerMessages.push("📰 NEWS: {{ news }}");
+    {% endfor %}
+  {% endif %}
+
+  let bannerIndex = 0;
+  function rotateBanner() {
+    if (bannerMessages.length > 0) {
+      document.getElementById('alertBanner').textContent = bannerMessages[bannerIndex];
+      bannerIndex = (bannerIndex + 1) % bannerMessages.length;
+    } else {
+      document.getElementById('alertBanner').textContent = "Welcome to CryptoKitty!";
+    }
+  }
+  setInterval(rotateBanner, 5000);
+  rotateBanner();
+
+  // CryptoDog Toggle & Sounds
+  function toggleCryptoDog() {
+    const widget = document.getElementById("cryptoDogWidget");
+    widget.style.display = widget.style.display === "none" ? "block" : "none";
+  }
 </script>
 </body>
 </html>
