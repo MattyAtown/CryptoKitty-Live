@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CryptoKitty Elite v2.6</title>
+  <title>CryptoKitty Elite v2.7</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -21,7 +21,13 @@
       justify-content: space-between;
       align-items: center;
     }
-    .top-right-logo img {
+    .top-right-logo {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .top-right-logo img,
+    #cryptoDogIcon {
       max-width: 100px;
       filter: drop-shadow(0 0 8px #00e0ff);
     }
@@ -84,9 +90,10 @@
 <body>
 <div class="main-wrapper">
   <div class="top-bar">
-    <h1>🐱 CryptoKitty Elite v2.6</h1>
+    <h1>🐱 CryptoKitty Elite v2.7</h1>
     <div class="top-right-logo">
       <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+      <img id="cryptoDogIcon" src="/static/neutral.png" alt="CryptoDog Icon" />
     </div>
   </div>
 
