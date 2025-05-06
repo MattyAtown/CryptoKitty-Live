@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CryptoKitty Elite v2.4</title>
+  <title>CryptoKitty Elite v2.5</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -68,7 +68,7 @@
 <body>
 <div class="main-wrapper">
   <div class="top-bar">
-    <h1>🐱 CryptoKitty Elite v2.4</h1>
+    <h1>🐱 CryptoKitty Elite v2.5</h1>
     <div class="top-right-logo">
       <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
     </div>
@@ -125,7 +125,24 @@
 <script>
   const rawHistory = {{ price_history | tojson | safe }};
   const selected = {{ selected | tojson | safe }};
-  const labels = Array.from({ length: 10 }, (_, i) => `${(9 - i) * 5} min ago`).reverse();
+  const timeRange = "{{ time_range }}";
+
+  const timeConfigs = {
+    "5m":  { step: 1,  count: 6,  unit: "min" },
+    "15m": { step: 3,  count: 6,  unit: "min" },
+    "30m": { step: 6,  count: 6,  unit: "min" },
+    "1h":  { step: 12, count: 6,  unit: "min" },
+    "1d":  { step: 4,  count: 6,  unit: "hour" },
+    "1w":  { step: 1,  count: 7,  unit: "day" },
+    "1mo": { step: 5,  count: 6,  unit: "day" }
+  };
+
+  const config = timeConfigs[timeRange] || timeConfigs["30m"];
+  const labels = Array.from({ length: config.count }, (_, i) => {
+    const val = config.step * (config.count - i - 1);
+    return val === 0 ? "Now" : `${val} ${config.unit}${val > 1 ? 's' : ''} ago`;
+  });
+
   const datasets = selected.map(coin => {
     const prices = rawHistory[coin] || [];
     const base = prices[0] || 1;
