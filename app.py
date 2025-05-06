@@ -1,27 +1,31 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 import requests
 import threading
 import time
-import os
 
 app = Flask(__name__)
 
+# Static list of supported coins
 supported_coins = ["BTC", "ETH", "SOL", "XRP", "ADA", "DOGE", "LTC", "DOT", "LINK", "AVAX"]
-selected_coins = []
-prices = {}
+
+# Per-session data will be passed via context, not stored globally
+# These are only for the background thread updater
+live_prices = {}
 price_history = {}
+
+# API call to Coinbase
 
 def get_coinbase_price(symbol):
     try:
         url = f"https://api.coinbase.com/v2/prices/{symbol}-USD/spot"
         response = requests.get(url)
         response.raise_for_status()
-        data = response.json()
-        return float(data["data"]["amount"])
+        return float(response.json()["data"]["amount"])
     except Exception as e:
-        print(f"[ERROR] Failed to get price for {symbol}: {e}")
+        print(f"Error fetching {symbol}: {e}")
         return None
 
+# Update price history (up to 10 points per coin)
 def update_price_history(symbol, price):
     if symbol not in price_history:
         price_history[symbol] = []
@@ -29,100 +33,55 @@ def update_price_history(symbol, price):
     if len(price_history[symbol]) > 10:
         price_history[symbol].pop(0)
 
+# Check trends based on last 3 points
 def check_trend(symbol):
-    history = price_history.get(symbol, [])
-    if len(history) >= 3:
-        if history[-3] > history[-2] > history[-1]:
+    hist = price_history.get(symbol, [])
+    if len(hist) >= 3:
+        if hist[-3] > hist[-2] > hist[-1]:
             return "WARNING"
-        elif history[-3] < history[-2] < history[-1]:
+        elif hist[-3] < hist[-2] < hist[-1]:
             return "RISER"
     return "Stable"
 
+# Get top risers
 def get_top_risers():
     return dict(sorted({
-        coin: round(history[-1] - history[0], 2)
-        for coin, history in price_history.items() if len(history) >= 2
+        c: round(h[-1] - h[0], 2)
+        for c, h in price_history.items() if len(h) >= 2
     }.items(), key=lambda x: x[1], reverse=True)[:3])
 
-def get_crypto_news():
-    try:
-        url = "https://openapi.coinstats.app/news/latest?limit=5"
-        headers = {
-            "accept": "application/json",
-            "X-API-KEY": "B8btcyebVUFRSFaE5U7z+xwoiN96M2VBSU/UQP7s3oc="
-        }
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        headlines = [article["title"] for article in data.get("news", [])]
-        print(f"[NEWS] Headlines fetched: {headlines}")
-        return headlines
-    except Exception as e:
-        print(f"[ERROR] Failed to fetch news: {e}")
-        return []
-
+# Background thread updates live data
 def price_updater():
-    global prices
     while True:
-        try:
-            if selected_coins:
-                print(f"[UPDATE] Fetching prices for: {selected_coins}")
-                for coin in selected_coins:
-                    price = get_coinbase_price(coin)
-                    if price:
-                        prices[coin] = price
-                        update_price_history(coin, price)
-            time.sleep(60)  # Adjusted for quicker dev feedback
-        except Exception as e:
-            print(f"[ERROR] Price updater failed: {e}")
-            time.sleep(10)
+        for coin in supported_coins:
+            price = get_coinbase_price(coin)
+            if price:
+                live_prices[coin] = price
+                update_price_history(coin, price)
+        time.sleep(300)  # 5 minutes
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    global selected_coins
+    # Individual session coin selection
+    selected = []
     if request.method == "POST":
         form_data = request.form.get("coins", "")
-        selected_coins = [c for c in form_data.split(",") if c]
-    elif not selected_coins:
-        selected_coins = supported_coins.copy()  # Default selection on GET
+        selected = form_data.split(",") if form_data else []
 
-    trends = {coin: check_trend(coin) for coin in selected_coins}
+    trends = {coin: check_trend(coin) for coin in selected}
     top_risers = get_top_risers()
-
-    news_headlines = []
-    try:
-        news_headlines = get_crypto_news()
-    except Exception as e:
-        print(f"[WARNING] Failed to fetch news safely in route: {e}")
+    current_prices = {coin: live_prices.get(coin, None) for coin in selected}
+    session_history = {coin: price_history.get(coin, []) for coin in selected}
 
     return render_template("index.html",
-        coins=supported_coins,
-        selected=selected_coins,
-        prices=prices,
-        trends=trends,
-        top_risers=top_risers,
-        price_history=price_history,
-        news_headlines=news_headlines
-    )
+                           coins=supported_coins,
+                           selected=selected,
+                           prices=current_prices,
+                           trends=trends,
+                           top_risers=top_risers,
+                           price_history=session_history)
 
-@app.route("/prices")
-def get_prices():
-    return jsonify(prices)
-
-@app.route("/history")
-def get_history():
-    return jsonify(price_history)
-
-@app.route("/trends")
-def get_trends():
-    return jsonify({coin: check_trend(coin) for coin in selected_coins})
-
-@app.route("/risers")
-def get_risers():
-    return jsonify(get_top_risers())
-
+# Start background thread
 if __name__ == "__main__":
-    print("🚀 Starting CryptoKitty + CryptoDog + NewsFlash App...")
     threading.Thread(target=price_updater, daemon=True).start()
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True, port=10000, host="0.0.0.0")
