@@ -14,7 +14,6 @@ live_prices = {}
 price_history = {}
 
 # API call to Coinbase
-
 def get_coinbase_price(symbol):
     try:
         url = f"https://api.coinbase.com/v2/prices/{symbol}-USD/spot"
@@ -25,30 +24,35 @@ def get_coinbase_price(symbol):
         print(f"Error fetching {symbol}: {e}")
         return None
 
-# Update price history (up to 10 points per coin)
+# Update price history with a full timestamp log (1 entry every 5 min)
 def update_price_history(symbol, price):
     if symbol not in price_history:
         price_history[symbol] = []
-    price_history[symbol].append(price)
-    if len(price_history[symbol]) > 10:
+    timestamp = int(time.time())
+    price_history[symbol].append((timestamp, price))
+    if len(price_history[symbol]) > 288:  # store up to ~1 day of 5min intervals
         price_history[symbol].pop(0)
 
 # Check trends based on last 3 points
 def check_trend(symbol):
     hist = price_history.get(symbol, [])
-    if len(hist) >= 3:
-        if hist[-3] > hist[-2] > hist[-1]:
+    values = [p[1] for p in hist[-3:]]
+    if len(values) == 3:
+        if values[0] > values[1] > values[2]:
             return "WARNING"
-        elif hist[-3] < hist[-2] < hist[-1]:
+        elif values[0] < values[1] < values[2]:
             return "RISER"
     return "Stable"
 
 # Get top risers
+
 def get_top_risers():
-    return dict(sorted({
-        c: round(h[-1] - h[0], 2)
-        for c, h in price_history.items() if len(h) >= 2
-    }.items(), key=lambda x: x[1], reverse=True)[:3])
+    risers = {}
+    for coin, history in price_history.items():
+        values = [p[1] for p in history if len(history) >= 2]
+        if values:
+            risers[coin] = round(values[-1] - values[0], 2)
+    return dict(sorted(risers.items(), key=lambda x: x[1], reverse=True)[:3])
 
 # Background thread updates live data
 def price_updater():
@@ -62,16 +66,35 @@ def price_updater():
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    # Individual session coin selection
     selected = []
+    time_range = "5m"
     if request.method == "POST":
         form_data = request.form.get("coins", "")
         selected = [c for c in form_data.split(",") if c.strip()] if form_data else []
+        time_range = request.form.get("time_range", "5m")
 
     trends = {coin: check_trend(coin) for coin in selected}
     top_risers = get_top_risers()
     current_prices = {coin: live_prices.get(coin, None) for coin in selected}
-    session_history = {coin: price_history.get(coin, []) for coin in selected}
+
+    # Filter history based on selected time range
+    session_history = {}
+    time_now = int(time.time())
+    range_minutes = {
+        "5m": 5,
+        "15m": 15,
+        "30m": 30,
+        "1h": 60,
+        "1d": 1440,
+        "1w": 10080,
+        "1mo": 43200
+    }.get(time_range, 5)
+    seconds_back = range_minutes * 60
+
+    for coin in selected:
+        full_history = price_history.get(coin, [])
+        filtered = [price for ts, price in full_history if time_now - ts <= seconds_back]
+        session_history[coin] = filtered
 
     return render_template("index.html",
                            coins=supported_coins,
@@ -79,9 +102,9 @@ def index():
                            prices=current_prices,
                            trends=trends,
                            top_risers=top_risers,
-                           price_history=session_history)
+                           price_history=session_history,
+                           time_range=time_range)
 
-# Start background thread
 if __name__ == "__main__":
     threading.Thread(target=price_updater, daemon=True).start()
     app.run(debug=True, port=10000, host="0.0.0.0")
