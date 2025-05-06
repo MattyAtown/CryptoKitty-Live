@@ -2,7 +2,6 @@ from flask import Flask, render_template, request
 import requests
 from datetime import datetime, timedelta
 from collections import defaultdict
-import random
 
 app = Flask(__name__)
 
@@ -15,9 +14,21 @@ NEWS_HEADLINES = [
     "Market reacts to inflation data"
 ]
 
-# Simulate API call (replace with real API in production)
+COIN_SYMBOLS = {
+    "BTC": "BTC-USD", "ETH": "ETH-USD", "XRP": "XRP-USD",
+    "SOL": "SOL-USD", "ADA": "ADA-USD", "DOGE": "DOGE-USD",
+    "MATIC": "MATIC-USD", "DOT": "DOT-USD"
+}
+
 def fetch_price(coin):
-    return round(random.uniform(100, 500), 2)
+    try:
+        symbol = COIN_SYMBOLS.get(coin)
+        url = f"https://api.coinbase.com/v2/prices/{symbol}/spot"
+        response = requests.get(url)
+        data = response.json()
+        return round(float(data['data']['amount']), 2)
+    except:
+        return None
 
 def get_trend(prices):
     if len(prices) < 3:
@@ -41,16 +52,19 @@ def index():
     prices = {}
     for coin in selected:
         price = fetch_price(coin)
-        prices[coin] = price
-        PRICE_HISTORY[coin].append(price)
-        PRICE_HISTORY[coin] = PRICE_HISTORY[coin][-100:]
+        if price is not None:
+            prices[coin] = price
+            PRICE_HISTORY[coin].append(price)
+            PRICE_HISTORY[coin] = PRICE_HISTORY[coin][-30:]
+        else:
+            prices[coin] = "N/A"
 
     for coin in selected:
         TRENDS[coin] = get_trend(PRICE_HISTORY[coin])
 
     top_risers = {}
     for coin in selected:
-        history = PRICE_HISTORY[coin][-12:]
+        history = PRICE_HISTORY[coin][-6:]
         if len(history) >= 2 and history[0] != 0:
             diff = ((history[-1] - history[0]) / history[0]) * 100
             top_risers[coin] = f"{diff:.2f}%"
