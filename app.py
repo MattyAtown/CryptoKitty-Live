@@ -66,7 +66,7 @@ def index():
     selected = []
     if request.method == "POST":
         form_data = request.form.get("coins", "")
-        selected = form_data.split(",") if form_data else []
+        selected = [c for c in form_data.split(",") if c.strip()] if form_data else []
 
     trends = {coin: check_trend(coin) for coin in selected}
     top_risers = get_top_risers()
