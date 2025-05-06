@@ -64,6 +64,21 @@
       right: 20px;
       color: #888;
     }
+    .cryptodog-toggle {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #222;
+      color: #00f0ff;
+      border: 2px solid #00f0ff;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+    }
+    #cryptoDogWidget img {
+      width: 90%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -99,6 +114,14 @@
     <input type="hidden" id="selectedCoinsInput" name="coins" value="{{ selected | join(',') }}">
     <button type="submit">Update</button>
   </form>
+
+  <div class="cryptodog-toggle" onclick="toggleCryptoDog()">🐶 Toggle CryptoDog</div>
+  <div id="cryptoDogWidget" style="display: none;">
+    <img id="dogFace" src="/static/neutral.png" alt="Dog Face" />
+    <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
+    <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
+    <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
+  </div>
 
   <div class="content-row">
     <div class="panel">
@@ -198,7 +221,6 @@
     now.getMinutes().toString().padStart(2, '0') + ':' +
     now.getSeconds().toString().padStart(2, '0');
 
-  // Flashing Banner Rotation Logic
   const bannerMessages = [];
   {% for coin, trend in trends.items() %}
     {% if trend == 'WARNING' %}
@@ -225,7 +247,6 @@
   setInterval(rotateBanner, 5000);
   rotateBanner();
 
-  // CryptoDog Toggle & Sounds
   function toggleCryptoDog() {
     const widget = document.getElementById("cryptoDogWidget");
     widget.style.display = widget.style.display === "none" ? "block" : "none";
