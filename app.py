@@ -1,13 +1,14 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import defaultdict
 
 app = Flask(__name__)
+CORS(app)
 
 COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT"]
 PRICE_HISTORY = defaultdict(list)
-TRENDS = {}
 NEWS_HEADLINES = [
     "Bitcoin hits new high amid ETF optimism",
     "Ethereum upgrade causes network surge",
@@ -46,11 +47,9 @@ def get_trend(prices):
 @app.route("/", methods=["GET", "POST"])
 def index():
     selected = []
-    time_range = "1h"
     if request.method == "POST":
         coins = request.form.get("coins", "")
         selected = coins.split(",") if coins else []
-        time_range = request.form.get("time_range", "1h")
 
     prices = {}
     price_history = {}
@@ -61,14 +60,12 @@ def index():
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             PRICE_HISTORY[coin].append((timestamp, price))
             PRICE_HISTORY[coin] = PRICE_HISTORY[coin][-100:]
-            # Prepare price history for the frontend
             price_history[coin] = [p[1] for p in PRICE_HISTORY[coin]]
         else:
             prices[coin] = "N/A"
 
     # Determine trends
-    for coin in selected:
-        TRENDS[coin] = get_trend([p[1] for p in PRICE_HISTORY[coin]])
+    trends = {coin: get_trend(price_history.get(coin, [])) for coin in selected}
 
     # Calculate top risers
     top_risers = {}
@@ -84,15 +81,21 @@ def index():
         selected=selected,
         prices=prices,
         price_history=price_history,
-        trends=TRENDS,
+        trends=trends,
         top_risers=top_risers,
-        news_headlines=NEWS_HEADLINES,
-        time_range=time_range
+        news_headlines=NEWS_HEADLINES
     )
+
+@app.route("/api/prices")
+def prices_api():
+    current_prices = {}
+    for coin in COINS:
+        price = fetch_price(coin)
+        current_prices[coin] = price if price is not None else "N/A"
+    return jsonify(current_prices)
 
 @app.route("/api/price-history")
 def price_history_api():
-    # Return a simplified JSON structure for easier frontend integration
     simplified_history = {
         coin: [entry[1] for entry in history]
         for coin, history in PRICE_HISTORY.items()
