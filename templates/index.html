@@ -4,30 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CryptoKitty Live</title>
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             background-color: #000000;
             color: #00FFAA;
-            font-family: Arial, sans-serif;
+            font-family: 'Orbitron', sans-serif;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
         }
         #app {
-            width: 90%;
-            margin: 0 auto;
+            width: 95%;
+            margin: 20px auto;
             padding: 20px;
             background-color: #111111;
             border-radius: 15px;
-            box-shadow: 0 0 20px #00FFAA;
+            box-shadow: 0 0 30px #00FFAA;
         }
         header h1 {
             text-align: center;
             font-size: 3em;
             color: #00FFAA;
             margin-bottom: 20px;
+            text-shadow: 0 0 20px #00FFAA, 0 0 40px #00FFAA;
+            letter-spacing: 2px;
         }
         .banner {
             background-color: #111111;
@@ -38,7 +41,8 @@
             text-align: center;
             font-size: 1.5em;
             margin-bottom: 20px;
-            animation: pulse 1.5s infinite;
+            animation: pulse 2s infinite alternate;
+            text-shadow: 0 0 15px #00FFAA;
         }
         .controls {
             margin-bottom: 20px;
@@ -48,42 +52,74 @@
             background-color: #222222;
             color: #00FFAA;
             border: 2px solid #00FFAA;
-            padding: 10px;
+            padding: 10px 20px;
             font-size: 1em;
             border-radius: 10px;
             margin-bottom: 10px;
             cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
         }
         button:hover {
             background-color: #00FFAA;
             color: #111111;
+            box-shadow: 0 0 20px #00FFAA, 0 0 40px #00FFAA;
         }
         #prices ul {
             list-style: none;
             padding: 0;
             font-size: 1.2em;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         #prices ul li {
             background-color: #222222;
             color: #00FFAA;
             border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 5px;
+            padding: 15px;
+            margin: 5px;
             border: 2px solid #00FFAA;
             text-align: center;
+            min-width: 150px;
+            box-shadow: 0 0 20px #00FFAA;
+            transition: all 0.3s ease;
+        }
+        #prices ul li:hover {
+            background-color: #00FFAA;
+            color: #111111;
+            box-shadow: 0 0 30px #00FFAA;
         }
         @keyframes pulse {
             0% { border-color: #00FFAA; }
-            50% { border-color: #FFFFFF; }
-            100% { border-color: #00FFAA; }
+            100% { border-color: #FFFFFF; }
+        }
+        .ticker {
+            background-color: #111111;
+            color: #00FFAA;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            overflow: hidden;
+            white-space: nowrap;
+            box-shadow: 0 0 20px #00FFAA;
+            animation: scroll 20s linear infinite;
+            text-shadow: 0 0 10px #00FFAA;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
     </style>
 </head>
 <body>
     <div id="app">
         <header>
-            <h1>CryptoKitty Live</h1>
+            <h1>CryptoKitty</h1>
             <div class="banner" id="trend-banner">Loading trends...</div>
+            <div class="ticker" id="news-ticker">Loading news...</div>
         </header>
 
         <div class="controls">
@@ -109,50 +145,10 @@
 
     <script>
         $(document).ready(function() {
-            // Handle form submission
-            $("#coin-form").on("submit", function(e) {
-                e.preventDefault();
-                const selectedCoins = $("#coins").val();
-                if (selectedCoins.length > 0) {
-                    fetchPrices(selectedCoins);
-                }
-            });
-
-            // Fetch prices from the API
-            function fetchPrices(coins) {
-                $.ajax({
-                    url: "/api/prices",
-                    method: "GET",
-                    success: function(data) {
-                        updatePrices(data, coins);
-                        updateTrendBanner(data);
-                    },
-                    error: function(err) {
-                        console.error("Error fetching prices:", err);
-                    }
-                });
-            }
-
-            // Update the prices on the page
-            function updatePrices(data, coins) {
-                let pricesHtml = "<ul>";
-                coins.forEach(coin => {
-                    pricesHtml += `<li>${coin}: $${data[coin]}</li>`;
-                });
-                pricesHtml += "</ul>";
-                $("#prices").html(pricesHtml);
-            }
-
-            // Update the trend banner
-            function updateTrendBanner(data) {
-                let bannerText = "";
-                Object.keys(data).forEach(coin => {
-                    const price = data[coin];
-                    if (price === "N/A") return;
-                    bannerText += `${coin} is active | `;
-                });
-                $("#trend-banner").text(bannerText || "No active coins selected");
-            }
+            // Fetch news headlines
+            const headlines = ["Bitcoin hits new high amid ETF optimism", "Ethereum upgrade causes network surge", "Market reacts to inflation data"];
+            let tickerText = headlines.join(" | ");
+            $("#news-ticker").text(tickerText);
         });
     </script>
 </body>
