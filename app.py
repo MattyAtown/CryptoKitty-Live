@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import requests
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -20,6 +20,7 @@ COIN_SYMBOLS = {
     "MATIC": "MATIC-USD", "DOT": "DOT-USD"
 }
 
+# Fetch live prices from Coinbase
 def fetch_price(coin):
     try:
         symbol = COIN_SYMBOLS.get(coin)
@@ -27,9 +28,11 @@ def fetch_price(coin):
         response = requests.get(url)
         data = response.json()
         return round(float(data['data']['amount']), 2)
-    except:
+    except Exception as e:
+        print(f"Error fetching price for {coin}: {e}")
         return None
 
+# Determine trend based on recent prices
 def get_trend(prices):
     if len(prices) < 3:
         return "Stable"
@@ -50,21 +53,27 @@ def index():
         time_range = request.form.get("time_range", "1h")
 
     prices = {}
+    price_history = {}
     for coin in selected:
         price = fetch_price(coin)
         if price is not None:
             prices[coin] = price
-            PRICE_HISTORY[coin].append(price)
-            PRICE_HISTORY[coin] = PRICE_HISTORY[coin][-30:]
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            PRICE_HISTORY[coin].append((timestamp, price))
+            PRICE_HISTORY[coin] = PRICE_HISTORY[coin][-100:]
+            # Prepare price history for the frontend
+            price_history[coin] = [p[1] for p in PRICE_HISTORY[coin]]
         else:
             prices[coin] = "N/A"
 
+    # Determine trends
     for coin in selected:
-        TRENDS[coin] = get_trend(PRICE_HISTORY[coin])
+        TRENDS[coin] = get_trend([p[1] for p in PRICE_HISTORY[coin]])
 
+    # Calculate top risers
     top_risers = {}
     for coin in selected:
-        history = PRICE_HISTORY[coin][-6:]
+        history = price_history.get(coin, [])
         if len(history) >= 2 and history[0] != 0:
             diff = ((history[-1] - history[0]) / history[0]) * 100
             top_risers[coin] = f"{diff:.2f}%"
@@ -74,12 +83,21 @@ def index():
         coins=COINS,
         selected=selected,
         prices=prices,
-        price_history=PRICE_HISTORY,
+        price_history=price_history,
         trends=TRENDS,
         top_risers=top_risers,
         news_headlines=NEWS_HEADLINES,
         time_range=time_range
     )
+
+@app.route("/api/price-history")
+def price_history_api():
+    # Return a simplified JSON structure for easier frontend integration
+    simplified_history = {
+        coin: [entry[1] for entry in history]
+        for coin, history in PRICE_HISTORY.items()
+    }
+    return jsonify(simplified_history)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')
