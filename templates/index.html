@@ -1,263 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CryptoKitty Elite v2.7</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      background: #0d0d0d;
-      color: #00f0ff;
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
-    .main-wrapper {
-      padding: 20px;
-    }
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .top-right-logo {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .top-right-logo img,
-    #cryptoDogIcon {
-      max-width: 100px;
-      filter: drop-shadow(0 0 8px #00e0ff);
-    }
-    .alert-banner {
-      margin: 20px 0;
-      padding: 10px;
-      border: 2px solid #ff00f7;
-      background-color: #210025;
-      color: #ff00f7;
-      text-align: center;
-      box-shadow: 0 0 15px #ff00f7;
-      min-height: 50px;
-    }
-    .content-row {
-      display: flex;
-      gap: 20px;
-    }
-    .panel {
-      background: #111;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px #00f0ff;
-      flex: 1;
-    }
-    select, button {
-      background: #111;
-      color: #00f0ff;
-      border: 1px solid #00f0ff;
-      padding: 6px;
-      width: 100%;
-    }
-    canvas {
-      width: 100% !important;
-      height: 300px !important;
-      background: white;
-    }
-    .timestamp {
-      position: fixed;
-      bottom: 10px;
-      right: 20px;
-      color: #888;
-    }
-    .cryptodog-toggle {
-      margin-top: 10px;
-      padding: 10px;
-      background-color: #222;
-      color: #00f0ff;
-      border: 2px solid #00f0ff;
-      border-radius: 10px;
-      cursor: pointer;
-      text-align: center;
-    }
-    #cryptoDogWidget img {
-      width: 90%;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoKitty Live</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #00FFAA;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #app {
+            width: 90%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #111111;
+            border-radius: 15px;
+            box-shadow: 0 0 20px #00FFAA;
+        }
+        header h1 {
+            text-align: center;
+            font-size: 3em;
+            color: #00FFAA;
+            margin-bottom: 20px;
+        }
+        .banner {
+            background-color: #111111;
+            color: #FFFFFF;
+            border: 2px solid #00FFAA;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        select, button {
+            background-color: #222222;
+            color: #00FFAA;
+            border: 2px solid #00FFAA;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #00FFAA;
+            color: #111111;
+        }
+        #prices ul {
+            list-style: none;
+            padding: 0;
+            font-size: 1.2em;
+        }
+        #prices ul li {
+            background-color: #222222;
+            color: #00FFAA;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 2px solid #00FFAA;
+            text-align: center;
+        }
+        @keyframes pulse {
+            0% { border-color: #00FFAA; }
+            50% { border-color: #FFFFFF; }
+            100% { border-color: #00FFAA; }
+        }
+    </style>
 </head>
 <body>
-<div class="main-wrapper">
-  <div class="top-bar">
-    <h1>🐱 CryptoKitty Elite v2.7</h1>
-    <div class="top-right-logo">
-      <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
-      <img id="cryptoDogIcon" src="/static/neutral.png" alt="CryptoDog Icon" />
+    <div id="app">
+        <header>
+            <h1>CryptoKitty Live</h1>
+            <div class="banner" id="trend-banner">Loading trends...</div>
+        </header>
+
+        <div class="controls">
+            <form id="coin-form" method="POST">
+                <label for="coins">Select Coins:</label>
+                <select id="coins" name="coins" multiple>
+                    <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="ETH">Ethereum (ETH)</option>
+                    <option value="XRP">Ripple (XRP)</option>
+                    <option value="SOL">Solana (SOL)</option>
+                    <option value="ADA">Cardano (ADA)</option>
+                    <option value="DOGE">Dogecoin (DOGE)</option>
+                    <option value="MATIC">Polygon (MATIC)</option>
+                    <option value="DOT">Polkadot (DOT)</option>
+                </select>
+                <button type="submit">Update</button>
+            </form>
+        </div>
+
+        <div id="prices"></div>
+        <canvas id="price-chart"></canvas>
     </div>
-  </div>
 
-  <div class="alert-banner" id="alertBanner">Welcome to CryptoKitty!</div>
+    <script>
+        $(document).ready(function() {
+            // Handle form submission
+            $("#coin-form").on("submit", function(e) {
+                e.preventDefault();
+                const selectedCoins = $("#coins").val();
+                if (selectedCoins.length > 0) {
+                    fetchPrices(selectedCoins);
+                }
+            });
 
-  <form method="POST">
-    <label>Select Coins:</label>
-    <select id="coinSelector" multiple size="8">
-      {% for coin in coins %}
-        <option value="{{ coin }}" {% if coin in selected %}selected{% endif %}>{{ coin }}</option>
-      {% endfor %}
-    </select>
+            // Fetch prices from the API
+            function fetchPrices(coins) {
+                $.ajax({
+                    url: "/api/prices",
+                    method: "GET",
+                    success: function(data) {
+                        updatePrices(data, coins);
+                        updateTrendBanner(data);
+                    },
+                    error: function(err) {
+                        console.error("Error fetching prices:", err);
+                    }
+                });
+            }
 
-    <label>Select Time Range:</label>
-    <select name="time_range">
-      <option value="5m" {% if time_range == '5m' %}selected{% endif %}>Last 5 minutes</option>
-      <option value="15m" {% if time_range == '15m' %}selected{% endif %}>Last 15 minutes</option>
-      <option value="30m" {% if time_range == '30m' %}selected{% endif %}>Last 30 minutes</option>
-      <option value="1h" {% if time_range == '1h' %}selected{% endif %}>Last 1 hour</option>
-      <option value="1d" {% if time_range == '1d' %}selected{% endif %}>Last 1 day</option>
-      <option value="1w" {% if time_range == '1w' %}selected{% endif %}>Last 1 week</option>
-      <option value="1mo" {% if time_range == '1mo' %}selected{% endif %}>Last 1 month</option>
-    </select>
+            // Update the prices on the page
+            function updatePrices(data, coins) {
+                let pricesHtml = "<ul>";
+                coins.forEach(coin => {
+                    pricesHtml += `<li>${coin}: $${data[coin]}</li>`;
+                });
+                pricesHtml += "</ul>";
+                $("#prices").html(pricesHtml);
+            }
 
-    <input type="hidden" id="selectedCoinsInput" name="coins" value="{{ selected | join(',') }}">
-    <button type="submit">Update</button>
-  </form>
-
-  <div class="cryptodog-toggle" onclick="toggleCryptoDog()">🐶 Toggle CryptoDog</div>
-  <div id="cryptoDogWidget" style="display: none;">
-    <img id="dogFace" src="/static/neutral.png" alt="Dog Face" />
-    <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
-    <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
-    <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
-  </div>
-
-  <div class="content-row">
-    <div class="panel">
-      <h2>📈 Prices & Change</h2>
-      <ul>
-        {% for coin in selected %}
-          <li>{{ coin }}: {{ prices.get(coin, "Loading...") }} {% set trend = trends.get(coin, "Stable") %}<span>({{ trend }})</span></li>
-        {% endfor %}
-      </ul>
-      <h3>Top Risers</h3>
-      <ul>
-        {% for coin, gain in top_risers.items() %}
-          <li>{{ coin }}: +{{ gain }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-    <div class="panel">
-      <h2>📊 % Change Chart</h2>
-      <canvas id="priceChart"></canvas>
-    </div>
-  </div>
-</div>
-
-<div class="timestamp" id="timestamp">Last refreshed: --:--:--</div>
-
-<script>
-  const rawHistory = {{ price_history | tojson | safe }};
-  const selected = {{ selected | tojson | safe }};
-  const timeRange = "{{ time_range }}";
-
-  const timeConfigs = {
-    "5m":  { step: 1,  count: 6,  unit: "min" },
-    "15m": { step: 3,  count: 6,  unit: "min" },
-    "30m": { step: 6,  count: 6,  unit: "min" },
-    "1h":  { step: 12, count: 6,  unit: "min" },
-    "1d":  { step: 4,  count: 6,  unit: "hour" },
-    "1w":  { step: 1,  count: 7,  unit: "day" },
-    "1mo": { step: 5,  count: 6,  unit: "day" }
-  };
-
-  const config = timeConfigs[timeRange] || timeConfigs["30m"];
-  const labels = Array.from({ length: config.count }, (_, i) => {
-    const val = config.step * (config.count - i - 1);
-    return val === 0 ? "Now" : `${val} ${config.unit}${val > 1 ? 's' : ''} ago`;
-  });
-
-  const datasets = selected.map(coin => {
-    const prices = rawHistory[coin] || [];
-    const base = prices[0] || 1;
-    const percentChanges = prices.map(p => ((p - base) / base) * 100);
-    return {
-      label: coin,
-      data: percentChanges,
-      borderColor: '#' + Math.floor(Math.random() * 16777215).toString(16),
-      borderWidth: 2,
-      fill: false,
-      tension: 0.3,
-      pointRadius: 3
-    };
-  });
-
-  new Chart(document.getElementById('priceChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: '% Change'
-          },
-          ticks: {
-            callback: value => value.toFixed(1) + '%'
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: {
-            color: '#fff'
-          }
-        }
-      }
-    }
-  });
-
-  const timestampEl = document.getElementById('timestamp');
-  const now = new Date();
-  timestampEl.textContent = 'Last refreshed: ' +
-    now.getHours().toString().padStart(2, '0') + ':' +
-    now.getMinutes().toString().padStart(2, '0') + ':' +
-    now.getSeconds().toString().padStart(2, '0');
-
-  const bannerMessages = [];
-  {% for coin, trend in trends.items() %}
-    {% if trend == 'WARNING' %}
-      bannerMessages.push("🚨 WARNING: {{ coin }} is falling fast!");
-    {% elif trend == 'RISER' %}
-      bannerMessages.push("📈 RISING: {{ coin }} is surging upward!");
-    {% endif %}
-  {% endfor %}
-  {% if news_headlines %}
-    {% for news in news_headlines %}
-      bannerMessages.push("📰 NEWS: {{ news }}");
-    {% endfor %}
-  {% endif %}
-
-  let bannerIndex = 0;
-  function rotateBanner() {
-    if (bannerMessages.length > 0) {
-      document.getElementById('alertBanner').textContent = bannerMessages[bannerIndex];
-      bannerIndex = (bannerIndex + 1) % bannerMessages.length;
-    } else {
-      document.getElementById('alertBanner').textContent = "Welcome to CryptoKitty!";
-    }
-  }
-  setInterval(rotateBanner, 5000);
-  rotateBanner();
-
-  function toggleCryptoDog() {
-    const widget = document.getElementById("cryptoDogWidget");
-    widget.style.display = widget.style.display === "none" ? "block" : "none";
-  }
-</script>
+            // Update the trend banner
+            function updateTrendBanner(data) {
+                let bannerText = "";
+                Object.keys(data).forEach(coin => {
+                    const price = data[coin];
+                    if (price === "N/A") return;
+                    bannerText += `${coin} is active | `;
+                });
+                $("#trend-banner").text(bannerText || "No active coins selected");
+            }
+        });
+    </script>
 </body>
 </html>
