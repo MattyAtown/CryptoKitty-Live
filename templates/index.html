@@ -3,7 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <title>CryptoKitty Elite v2.2</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js">// News ticker logic
+    const newsHeadlines = [
+      "🚀 Bitcoin breaks $30K for the first time this year!",
+      "⚡ Ethereum upgrade boosts transaction speeds.",
+      "📈 XRP sees a 20% surge amid SEC ruling hopes.",
+      "🔒 Crypto market shows resilience amid global uncertainty.",
+      "📰 New blockchain protocol promises faster transactions."
+    ];
+
+    function updateNewsTicker() {
+      const tickerElement = document.getElementById('newsTicker');
+      const newsString = newsHeadlines.join(' | ');
+      tickerElement.textContent = newsString;
+    }
+
+    updateNewsTicker();
+  // CryptoDog toggle function
+    function toggleCryptoDog() {
+      const widget = document.getElementById('cryptoDogWidget');
+      widget.style.display = widget.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // CryptoDog alert logic
+    function triggerCryptoDogAlert(message, type) {
+      const alertsContainer = document.getElementById('cryptoDogAlerts');
+      const alertElement = document.createElement('p');
+      alertElement.textContent = message;
+      alertElement.classList.add(type === 'positive' ? 'alert-positive' : 'alert-negative');
+      alertsContainer.appendChild(alertElement);
+
+      // Play sound based on alert type
+      if (type === 'positive') {
+        document.getElementById('bark').play();
+      } else if (type === 'negative') {
+        document.getElementById('growl').play();
+      } else {
+        document.getElementById('sniff').play();
+      }
+
+      // Auto-remove alert after 15 seconds
+      setTimeout(() => alertElement.remove(), 15000);
+    }
+
+    // Example alerts for testing
+    setTimeout(() => triggerCryptoDogAlert("🐶 Sniffing out a potential breakout!", 'positive'), 5000);
+    setTimeout(() => triggerCryptoDogAlert("🚨 Watch out for a sudden drop!", 'negative'), 10000);
+  // Top Risers and Warning logic
+    function updateTrends(rawHistory, selectedCoins) {
+      const trends = {};
+      const topRisers = {};
+
+      selectedCoins.forEach(coin => {
+        const prices = rawHistory[coin] || [];
+
+        // Check for Riser or Warning (3 in a row rule)
+        if (prices.length >= 3) {
+          const lastThree = prices.slice(-3);
+          const [first, second, third] = lastThree;
+
+          if (third > second && second > first) {
+            trends[coin] = 'Riser';
+            topRisers[coin] = (((third - first) / first) * 100).toFixed(2) + '%';
+          } else if (third < second && second < first) {
+            trends[coin] = 'Warning';
+          } else {
+            trends[coin] = 'Stable';
+          }
+        } else {
+          trends[coin] = 'Stable';
+        }
+      });
+
+      // Update Prices & Change panel
+      const pricesPanel = document.querySelector('.prices-panel ul');
+      pricesPanel.innerHTML = '';
+      selectedCoins.forEach(coin => {
+        const price = rawHistory[coin]?.slice(-1)[0] || 'Loading...';
+        const trendClass = trends[coin].toLowerCase();
+        pricesPanel.innerHTML += `<li>${coin}: $${price} <span class="badge ${trendClass}">${trends[coin]}</span></li>`;
+      });
+
+      // Update Top Risers panel
+      const risersPanel = document.querySelector('.prices-panel h3 + ul');
+      risersPanel.innerHTML = '';
+      Object.keys(topRisers).forEach(coin => {
+        risersPanel.innerHTML += `<li>${coin}: +${topRisers[coin]}</li>`;
+      });
+    }
+
+    // Initial trend update
+    const initialRawHistory = {{ price_history | tojson | safe }};
+    const initialSelected = {{ selected | tojson | safe }};
+    updateTrends(initialRawHistory, initialSelected);
+  // Hooking CryptoDog into the 3-in-a-row trend logic
+    function updateTrendsWithCryptoDog(rawHistory, selectedCoins) {
+      const trends = {};
+      const topRisers = {};
+
+      selectedCoins.forEach(coin => {
+        const prices = rawHistory[coin] || [];
+
+        // Check for Riser or Warning (3 in a row rule)
+        if (prices.length >= 3) {
+          const lastThree = prices.slice(-3);
+          const [first, second, third] = lastThree;
+
+          if (third > second && second > first) {
+            trends[coin] = 'Riser';
+            topRisers[coin] = (((third - first) / first) * 100).toFixed(2) + '%';
+            triggerCryptoDogAlert(`📈 ${coin} is rising fast!`, 'positive');
+          } else if (third < second && second < first) {
+            trends[coin] = 'Warning';
+            triggerCryptoDogAlert(`🚨 ${coin} is dropping rapidly!`, 'negative');
+          } else {
+            trends[coin] = 'Stable';
+          }
+        } else {
+          trends[coin] = 'Stable';
+        }
+      });
+
+      // Update Prices & Change panel
+      const pricesPanel = document.querySelector('.prices-panel ul');
+      pricesPanel.innerHTML = '';
+      selectedCoins.forEach(coin => {
+        const price = rawHistory[coin]?.slice(-1)[0] || 'Loading...';
+        const trendClass = trends[coin].toLowerCase();
+        pricesPanel.innerHTML += `<li>${coin}: $${price} <span class="badge ${trendClass}">${trends[coin]}</span></li>`;
+      });
+
+      // Update Top Risers panel
+      const risersPanel = document.querySelector('.prices-panel h3 + ul');
+      risersPanel.innerHTML = '';
+      Object.keys(topRisers).forEach(coin => {
+        risersPanel.innerHTML += `<li>${coin}: +${topRisers[coin]}</li>`;
+      });
+    }
+
+    // Initial trend update with CryptoDog alerts
+    const initialRawHistoryWithCryptoDog = {{ price_history | tojson | safe }};
+    const initialSelectedWithCryptoDog = {{ selected | tojson | safe }};
+    updateTrendsWithCryptoDog(initialRawHistoryWithCryptoDog, initialSelectedWithCryptoDog);
+  // Fetch live prices every 60 seconds
+    function fetchLivePrices() {
+      fetch('/api/prices')
+        .then(response => response.json())
+        .then(data => {
+          const rawHistory = {};
+          const selectedCoins = Array.from(document.getElementById('coinSelector').selectedOptions).map(option => option.value);
+          
+          selectedCoins.forEach(coin => {
+            if (!rawHistory[coin]) rawHistory[coin] = [];
+            rawHistory[coin].push(data[coin] || 0);
+            rawHistory[coin] = rawHistory[coin].slice(-10);  // Keep the last 10 entries for trend detection
+          });
+          
+          // Update trends and CryptoDog alerts
+          updateTrendsWithCryptoDog(rawHistory, selectedCoins);
+        })
+        .catch(error => console.error("Error fetching live prices:", error));
+    }
+
+    // Start the 1-minute live price update loop
+    setInterval(fetchLivePrices, 60000);
+    fetchLivePrices();  // Initial load
+  </script>
   <style>
     /* Page and Layout Styles */
     body {
@@ -150,7 +315,49 @@
       font-size: 0.85em;
       text-shadow: 0 0 6px #00e0ff;
     }
-  </style>
+  .news-ticker {
+      overflow: hidden;
+      white-space: nowrap;
+      display: inline-block;
+      animation: tickerScroll 30s linear infinite;
+    }
+
+    @keyframes tickerScroll {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+.dog-alerts {
+      background-color: #111;
+      color: #00f0ff;
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+      width: 90%;
+      text-align: center;
+      border: 2px solid #00f0ff;
+      box-shadow: 0 0 20px #00f0ff;
+      min-height: 50px;
+      overflow-y: auto;
+      max-height: 150px;
+    }
+
+    .dog-alerts p {
+      margin: 5px 0;
+      font-weight: bold;
+      color: #00f0ff;
+      text-shadow: 0 0 5px #00f0ff;
+    }
+
+    .dog-alerts .alert-positive {
+      color: #00e676;
+      text-shadow: 0 0 10px #00e676;
+    }
+
+    .dog-alerts .alert-negative {
+      color: #ff1744;
+      text-shadow: 0 0 10px #ff1744;
+    }
+
 </head>
 
 <body>
@@ -170,7 +377,9 @@
   </div>
 
   <!-- 💥 Flashing Banner -->
-  <div class="alert-banner" id="alertBanner">Loading...</div>
+  <div class="alert-banner" id="alertBanner">
+  <div id="newsTicker" class="news-ticker">Loading news...</div>
+</div>
 
   <!-- 🚀 4-Panel Layout -->
   <div class="content-row">
@@ -213,6 +422,14 @@
       <h2>🐶 CryptoDog</h2>
       <div id="cryptoDogWidget" style="display: none;">
         <img id="dogFace" src="/static/neutral.png" alt="Dog Face" />
+        <audio id="sniff" src="/static/sniff.mp3"></audio>
+        <audio id="bark" src="/static/bark.mp3"></audio>
+        <audio id="growl" src="/static/growl.mp3"></audio>
+        <div id="cryptoDogAlerts" class="dog-alerts"></div>
+      </div>
+      <h2>🐶 CryptoDog</h2>
+      <div id="cryptoDogWidget" style="display: none;">
+        <img id="dogFace" src="/static/neutral.png" alt="Dog Face" />
         <audio id="sniff" src="{{ url_for('static', filename='sniff.mp3') }}"></audio>
         <audio id="bark" src="{{ url_for('static', filename='bark.mp3') }}"></audio>
         <audio id="growl" src="{{ url_for('static', filename='growl.mp3') }}"></audio>
@@ -229,6 +446,105 @@
 
 <!-- 🕓 Timestamp -->
 <div class="timestamp" id="timestamp">Last refreshed: --:--:--</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const rawHistory = {{ price_history | tojson | safe }};
+    const selected = {{ selected | tojson | safe }};
+    const labels = Array.from({ length: 10 }, (_, i) => {
+      const minutesAgo = (9 - i) * 5;
+      return minutesAgo === 0 ? "Now" : `${minutesAgo} min ago`;
+    });
+
+    const datasets = selected.map((coin) => {
+      const prices = rawHistory[coin] || [];
+      const base = prices[0] || 1;
+      const percentChanges = prices.map(p => ((p - base) / base) * 100);
+      return {
+        label: coin,
+        data: percentChanges,
+        borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
+        pointRadius: 3,
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      };
+    });
+
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: '% Change'
+            },
+            ticks: {
+              callback: value => value.toFixed(1) + '%'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#fff'
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const coinSelector = document.getElementById('coinSelector');
+    const inputField = document.getElementById('selectedCoinsInput');
+    const selectedCoins = new Set(inputField.value.split(','));
+
+    // Double-click to select/deselect coins
+    coinSelector.addEventListener('dblclick', (e) => {
+      const coin = e.target.value;
+      if (selectedCoins.has(coin)) {
+        selectedCoins.delete(coin);
+      } else {
+        selectedCoins.add(coin);
+      }
+      inputField.value = Array.from(selectedCoins).join(',');
+    });
+
+    // Update button logic
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const coins = Array.from(selectedCoins).join(',');
+      inputField.value = coins;
+
+      // Fetch prices for the selected coins
+      fetch(`/api/prices`)
+        .then(response => response.json())
+        .then(data => {
+          let pricesHtml = "<ul>";
+          selectedCoins.forEach(coin => {
+            const price = data[coin] || "Loading...";
+            pricesHtml += `<li>${coin}: $${price}</li>`;
+          });
+          pricesHtml += "</ul>";
+          document.querySelector('.prices-panel ul').innerHTML = pricesHtml;
+        })
+        .catch(error => console.error("Error fetching prices:", error));
+    });
+  });
+</script>
 
 </body>
 </html>
