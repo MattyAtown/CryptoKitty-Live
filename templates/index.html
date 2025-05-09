@@ -3,33 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>CryptoKitty Elite v2.2</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js">// Fetch live prices for selected coins
-  function fetchPrices() {
-    const selectedCoinArray = Array.from(selectedCoins);
-    if (selectedCoinArray.length === 0) {
-      alert("Please select at least one coin.");
-      return;
-    }
-
-    fetch('/api/prices')
-      .then(response => response.json())
-      .then(data => {
-        const pricesList = document.getElementById('pricesList');
-        pricesList.innerHTML = '';
-        selectedCoinArray.forEach(coin => {
-          const price = data[coin] || "Loading...";
-          pricesList.innerHTML += `<li>${coin}: $${price}</li>`;
-        });
-      })
-      .catch(error => console.error("Error fetching prices:", error));
-  }
-
-  // Bind Update button
-  document.getElementById('updateButton').addEventListener('click', fetchPrices);
-// Price history and trend detection
+  <script src="https://cdn.jsdelivr.net/npm/chart.js">// Price history storage
   const priceHistory = {};
 
-  // Fetch live prices for selected coins
+  // Fetch live prices with trend detection
   function fetchPrices() {
     const selectedCoinArray = Array.from(selectedCoins);
     if (selectedCoinArray.length === 0) {
@@ -41,9 +18,7 @@
       .then(response => response.json())
       .then(data => {
         const pricesList = document.getElementById('pricesList');
-        const topRisersList = document.getElementById('topRisersList');
         pricesList.innerHTML = '';
-        topRisersList.innerHTML = '';
 
         selectedCoinArray.forEach(coin => {
           const price = data[coin] || "Loading...";
@@ -51,66 +26,59 @@
           priceHistory[coin].push(price);
           if (priceHistory[coin].length > 10) priceHistory[coin] = priceHistory[coin].slice(-10);
 
-          // Determine trend (3-in-a-row rule)
+          // Determine trend
           let trend = "Stable";
           if (priceHistory[coin].length >= 3) {
             const lastThree = priceHistory[coin].slice(-3);
             if (lastThree[2] > lastThree[1] && lastThree[1] > lastThree[0]) {
-              trend = "Riser";
+              trend = "Raising";
             } else if (lastThree[2] < lastThree[1] && lastThree[1] < lastThree[0]) {
-              trend = "Warning";
+              trend = "Falling";
             }
           }
 
-          // Add to Prices & Change panel
-          pricesList.innerHTML += `<li>${coin}: $${price} <span class="badge ${trend.toLowerCase()}">${trend}</span></li>`;
-
-          // Add to Top Risers panel if Riser
-          if (trend === "Riser") {
-            const percentChange = ((price - priceHistory[coin][0]) / priceHistory[coin][0] * 100).toFixed(2);
-            topRisersList.innerHTML += `<li>${coin}: +${percentChange}%</li>`;
-          }
+          // Add coin price and trend to list
+          const trendClass = trend.toLowerCase();
+          pricesList.innerHTML += `<li>${coin}: $${price} <span class="badge ${trendClass}">${trend}</span></li>`;
         });
       })
       .catch(error => console.error("Error fetching prices:", error));
   }
 
-  // Bind Update button
-  document.getElementById('updateButton').addEventListener('click', fetchPrices);
-// Initialize the live price chart
-  const ctx = document.getElementById('priceChart').getContext('2d');
-  const priceChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: Array.from({ length: 10 }, (_, i) => (9 - i) * 5 + ' min ago'),
-      datasets: []
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: {
-            display: true,
-            text: '% Change'
-          },
-          ticks: {
-            callback: value => value.toFixed(1) + '%'
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: {
-            color: '#fff'
-          }
-        }
-      }
+  // Double-click to select/deselect coins
+  coinSelector.addEventListener('dblclick', (e) => {
+    const coin = e.target.value;
+    if (selectedCoins.has(coin)) {
+      selectedCoins.delete(coin);
+    } else {
+      selectedCoins.add(coin);
     }
+    console.log("Selected Coins:", Array.from(selectedCoins));
+    fetchPrices();
   });
 
-  // Update the chart with new data
+  // Bind Update button
+  document.getElementById('updateButton').addEventListener('click', fetchPrices);
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js">// Toggle CryptoDog Widget
+  function toggleCryptoDog() {
+    const widget = document.getElementById('cryptoDogWidget');
+    widget.style.display = widget.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Update CryptoDog Image Based on Market Status
+  function updateCryptoDogStatus(coin, trend) {
+    const dogImage = document.getElementById('dogImage');
+    if (trend === 'Raising') {
+      dogImage.src = '/static/happy.png';
+    } else if (trend === 'Falling') {
+      dogImage.src = '/static/sad.png';
+    } else {
+      dogImage.src = '/static/neutral.png';
+    }
+  }
+
+  // Update chart data on coin selection
   function updateChart() {
     const datasets = Array.from(selectedCoins).map(coin => {
       const prices = priceHistory[coin] || [];
@@ -118,6 +86,18 @@
 
       const basePrice = prices[0];
       const percentChanges = prices.map(p => ((p - basePrice) / basePrice) * 100);
+
+      // Update CryptoDog based on the current trend
+      const lastThree = prices.slice(-3);
+      let trend = 'Stable';
+      if (lastThree.length === 3) {
+        if (lastThree[2] > lastThree[1] && lastThree[1] > lastThree[0]) {
+          trend = 'Raising';
+        } else if (lastThree[2] < lastThree[1] && lastThree[1] < lastThree[0]) {
+          trend = 'Falling';
+        }
+      }
+      updateCryptoDogStatus(coin, trend);
 
       return {
         label: coin,
@@ -139,8 +119,7 @@
     fetchPrices();
     updateChart();
   });
-</script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
   <style>
     body {
       background: #0d0d0d;
@@ -264,13 +243,42 @@
 
     .dog-alerts .alert-positive { color: #00e676; }
     .dog-alerts .alert-negative { color: #ff1744; }
-  </style>
+  .cryptoDogToggle {
+      background: #111;
+      color: #00f0ff;
+      border: 2px solid #00f0ff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 20px;
+    }
+
+    .cryptodog-widget {
+      width: 100%;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #111;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #00f0ff;
+      margin-top: 20px;
+    }
+
+    .cryptodog-widget img {
+      max-width: 80%;
+      height: auto;
+      border-radius: 10px;
+    }
+</style>
 </head>
 
 <body>
 <div class="main-wrapper">
   <!-- Top Bar -->
   <div class="top-bar">
+    <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
     <h1>🐱 CryptoKitty Elite Tracker</h1>
     <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
     <div class="top-right-logo">
@@ -300,6 +308,10 @@
 
     <div class="panel cryptodog-panel">
       <h2>🐶 CryptoDog</h2>
+      <div id="cryptoDogWidget" class="cryptodog-widget" style="display: none;">
+        <img id="dogImage" src="/static/neutral.png" alt="Dog Face" />
+      </div>
+      <h2>🐶 CryptoDog</h2>
       <div id="cryptoDogWidget" style="display: none;">
         <img src="/static/neutral.png" alt="Dog Face" />
         <div id="cryptoDogAlerts" class="dog-alerts"></div>
@@ -313,12 +325,97 @@
   </div>
 </div>
 
+<script src="/static/cryptokitty.js">// Update Top Risers List
+  function updateTopRisers() {
+    const topRisersList = document.getElementById('topRisersList');
+    topRisersList.innerHTML = '';
+
+    Object.keys(priceHistory).forEach(coin => {
+      const history = priceHistory[coin];
+      if (history.length >= 3) {
+        const lastThree = history.slice(-3);
+        if (lastThree[2] > lastThree[1] && lastThree[1] > lastThree[0]) {
+          const percentChange = ((lastThree[2] - lastThree[0]) / lastThree[0] * 100).toFixed(2);
+          topRisersList.innerHTML += `<li>${coin}: +${percentChange}%</li>`;
+        }
+      }
+    });
+  }
+
+  // Add the News Ticker Logic with CryptoDog Interrupts
+  function startNewsTicker() {
+    const newsTicker = document.getElementById('newsTicker');
+    const newsHeadlines = [
+      "Bitcoin surges to new all-time high!",
+      "Ethereum upgrade boosts transaction speeds.",
+      "XRP sees a 20% surge amid SEC ruling hopes.",
+      "Crypto market shows resilience amid global uncertainty.",
+      "New blockchain protocol promises faster transactions."
+    ];
+    let currentHeadline = 0;
+    let isAlerting = false;
+
+    function rotateNews() {
+      if (!isAlerting) {
+        newsTicker.textContent = newsHeadlines[currentHeadline];
+        currentHeadline = (currentHeadline + 1) % newsHeadlines.length;
+      }
+    }
+
+    function showAlert(message) {
+      isAlerting = true;
+      newsTicker.textContent = message;
+      setTimeout(() => {
+        isAlerting = false;
+      }, 5000);
+    }
+
+    // Replace this with real market change triggers later
+    setInterval(() => {
+      const alerts = ["🚀 Market is heating up!", "📉 Sharp drop detected!", "🔥 Volume spike incoming!"];
+      const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
+      showAlert(randomAlert);
+    }, 15000);
+
+    rotateNews();
+    setInterval(rotateNews, 3000);
+  }
+    const newsTicker = document.getElementById('newsTicker');
+    const newsHeadlines = [
+      "Bitcoin surges to new all-time high!",
+      "Ethereum upgrade boosts transaction speeds.",
+      "XRP sees a 20% surge amid SEC ruling hopes.",
+      "Crypto market shows resilience amid global uncertainty.",
+      "New blockchain protocol promises faster transactions."
+    ];
+
+    let currentHeadline = 0;
+    function rotateNews() {
+      newsTicker.textContent = newsHeadlines[currentHeadline];
+      currentHeadline = (currentHeadline + 1) % newsHeadlines.length;
+    }
+
+    rotateNews();
+    setInterval(rotateNews, 5000);
+  }
+
+  // Initialize news ticker
+  startNewsTicker();
+
+  // Bind Update button
+  document.getElementById('updateButton').addEventListener('click', () => {
+    fetchPrices();
+    updateTopRisers();
+    priceChart.update();
+  });
+
 <script>
   // Populate the coin selector with default coins
   const defaultCoins = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT"];
   const coinSelector = document.getElementById('coinSelector');
   const selectedCoins = new Set();
 
+  // Populate the coin selector
   defaultCoins.forEach(coin => {
     const option = document.createElement('option');
     option.value = coin;
@@ -335,6 +432,78 @@
       selectedCoins.add(coin);
     }
     console.log("Selected Coins:", Array.from(selectedCoins));
+  });
+
+  // Fetch live prices
+  function fetchPrices() {
+    const selectedCoinArray = Array.from(selectedCoins);
+    if (selectedCoinArray.length === 0) {
+      alert("Please select at least one coin.");
+      return;
+    }
+
+    fetch('/api/prices')
+      .then(response => response.json())
+      .then(data => {
+        const pricesList = document.getElementById('pricesList');
+        const topRisersList = document.getElementById('topRisersList');
+        pricesList.innerHTML = '';
+        topRisersList.innerHTML = '';
+
+        selectedCoinArray.forEach(coin => {
+          const price = data[coin] || "Loading...";
+          pricesList.innerHTML += `<li>${coin}: $${price}</li>`;
+        });
+      })
+      .catch(error => console.error("Error fetching prices:", error));
+  }
+
+  // Bind Update button
+  document.getElementById('updateButton').addEventListener('click', fetchPrices);
+
+  // Toggle CryptoDog Widget
+  function toggleCryptoDog() {
+    const widget = document.getElementById('cryptoDogWidget');
+    widget.style.display = widget.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Initialize Chart.js
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  const priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array.from({ length: 10 }, (_, i) => (9 - i) * 5 + ' min ago'),
+      datasets: []
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: {
+            display: true,
+            text: '% Change'
+          },
+          ticks: {
+            callback: value => value.toFixed(1) + '%'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#fff'
+          }
+        }
+      }
+    }
+  });
+
+  // Update the chart on every price fetch
+  document.getElementById('updateButton').addEventListener('click', () => {
+    fetchPrices();
+    priceChart.update();
   });
 </script>
 
