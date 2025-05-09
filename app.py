@@ -1,10 +1,12 @@
 from flask import Flask, render_template, jsonify, request
 import requests
 from collections import defaultdict
+import random
 
 app = Flask(__name__)
 
-COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT"]
+COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "POL", "LINK", "AERGO", "SUI"]
+
 PRICE_HISTORY = defaultdict(list)
 
 COIN_SYMBOLS = {
@@ -15,67 +17,50 @@ COIN_SYMBOLS = {
     "ADA": "ADA-USD",
     "DOGE": "DOGE-USD",
     "MATIC": "MATIC-USD",
-    "DOT": "DOT-USD"
+    "DOT": "DOT-USD",
+    "POL": "POL-USD",
+    "LINK": "LINK-USD",
+    "AERGO": "AERGO-USD",
+    "SUI": "SUI-USD"
 }
 
-def fetch_price(coin):
-    try:
-        symbol = COIN_SYMBOLS.get(coin)
-        url = f"https://api.coinbase.com/v2/prices/{symbol}/spot"
-        response = requests.get(url)
-        data = response.json()
-        price = float(data['data']['amount'])
-        PRICE_HISTORY[coin].append(price)
-        PRICE_HISTORY[coin] = PRICE_HISTORY[coin][-10:]  # Keep only the last 10 prices
-        return price
-    except Exception as e:
-        print(f"Error fetching price for {coin}: {e}")
-        return None
+DOG_STATES = ["happy", "neutral", "angry", "excited"]
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/')
 def index():
-    selected = request.form.get("coins", "").split(",") if request.method == "POST" else COINS
-    prices = {coin: fetch_price(coin) for coin in selected}
-    
-    # Determine trends
-    trends = {}
-    for coin in selected:
-        history = PRICE_HISTORY.get(coin, [])
-        if len(history) >= 3:
-            if history[-1] > history[-2] > history[-3]:
-                trends[coin] = "Riser"
-            elif history[-1] < history[-2] < history[-3]:
-                trends[coin] = "Warning"
-            else:
-                trends[coin] = "Stable"
-        else:
-            trends[coin] = "Stable"
-    
-    # Calculate top risers
-    top_risers = {}
-    for coin, history in PRICE_HISTORY.items():
-        if len(history) > 1:
-            gain = ((history[-1] - history[0]) / history[0]) * 100
-            top_risers[coin] = f"{gain:.2f}%"
+    return render_template('index.html')
 
-    return render_template(
-        "index.html",
-        coins=COINS,
-        selected=selected,
-        prices=prices,
-        trends=trends,
-        price_history=PRICE_HISTORY,
-        top_risers=top_risers
-    )
-
-@app.route("/api/prices", methods=["GET"])
+@app.route('/prices', methods=['POST'])
 def get_prices():
-    prices = {coin: fetch_price(coin) for coin in COINS}
-    return jsonify(prices)
+    selected_coins = request.json.get('coins', [])
+    prices = {}
+    
+    for coin in selected_coins:
+        symbol = COIN_SYMBOLS.get(coin)
+        if not symbol:
+            continue
+        
+        try:
+            response = requests.get(f"https://api.exchange.coinbase.com/products/{symbol}/ticker")
+            data = response.json()
+            price = float(data['price'])
+            prices[coin] = price
+            
+            # Track price history for alert logic
+            PRICE_HISTORY[coin].append(price)
+            if len(PRICE_HISTORY[coin]) > 3:
+                PRICE_HISTORY[coin].pop(0)
 
-@app.route("/api/price-history", methods=["GET"])
-def get_price_history():
-    return jsonify(PRICE_HISTORY)
+        except Exception as e:
+            print(f"Error fetching price for {coin}: {e}")
+    
+    # Random CryptoDog state for testing
+    cryptodog_state = random.choice(DOG_STATES)
+    
+    return jsonify({
+        "prices": prices,
+        "cryptodog_state": cryptodog_state
+    })
 
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+if __name__ == '__main__':
+    app.run(debug=True)
