@@ -31,6 +31,7 @@
         .cryptodog-toggle {
             margin-right: 20px;
             cursor: pointer;
+            width: 100px;
         }
         .banner {
             background-color: #222;
@@ -99,13 +100,18 @@
             background-color: #00FFFF;
             color: #111;
         }
+        .cryptodog {
+            width: 200px;
+            margin: 20px auto;
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Crypto Kitty 😼</h1>
-        <img src="aim_logo.png" alt="AiM Logo" class="logo">
-        <img src="cryptodog_toggle.png" alt="CryptoDog" class="cryptodog-toggle">
+        <img src="/static/logo.png" alt="AiM Logo" class="logo">
+        <img src="/static/happy.png" alt="CryptoDog" id="cryptodog-image" class="cryptodog-toggle" onclick="toggleCryptoDog()">
     </div>
     <div class="banner">Live News and Price Alerts Will Appear Here</div>
     <div class="main-section">
@@ -125,7 +131,7 @@
         </div>
         <div class="section-box">
             <h2 class="section-title">CRYPTODOG</h2>
-            <div id="cryptodog"></div>
+            <img src="/static/happy.png" alt="CryptoDog" id="cryptodog-image" class="cryptodog">
         </div>
         <div class="section-box" style="flex: 2;">
             <h2 class="section-title">LIVE CHART</h2>
@@ -141,5 +147,16 @@
             </div>
         </div>
     </div>
+    <script>
+        function toggleCryptoDog() {
+            const dogImage = document.getElementById('cryptodog-image');
+            const states = ['/static/happy.png', '/static/neutral.png', '/static/angry.png', '/static/excited.png'];
+            const sounds = ['/static/sniff.mp3', '/static/growl.mp3', '/static/bark.mp3'];
+            const randomIndex = Math.floor(Math.random() * states.length);
+            dogImage.src = states[randomIndex];
+            const audio = new Audio(sounds[randomIndex % sounds.length]);
+            audio.play();
+        }
+    </script>
 </body>
 </html>
