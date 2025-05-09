@@ -77,6 +77,68 @@
 
   // Bind Update button
   document.getElementById('updateButton').addEventListener('click', fetchPrices);
+// Initialize the live price chart
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  const priceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array.from({ length: 10 }, (_, i) => (9 - i) * 5 + ' min ago'),
+      datasets: []
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: {
+            display: true,
+            text: '% Change'
+          },
+          ticks: {
+            callback: value => value.toFixed(1) + '%'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#fff'
+          }
+        }
+      }
+    }
+  });
+
+  // Update the chart with new data
+  function updateChart() {
+    const datasets = Array.from(selectedCoins).map(coin => {
+      const prices = priceHistory[coin] || [];
+      if (prices.length === 0) return null;
+
+      const basePrice = prices[0];
+      const percentChanges = prices.map(p => ((p - basePrice) / basePrice) * 100);
+
+      return {
+        label: coin,
+        data: percentChanges,
+        borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
+        pointRadius: 3,
+        borderWidth: 2,
+        fill: false,
+        tension: 0.3
+      };
+    }).filter(Boolean);
+
+    priceChart.data.datasets = datasets;
+    priceChart.update();
+  }
+
+  // Update the chart on every price fetch
+  document.getElementById('updateButton').addEventListener('click', () => {
+    fetchPrices();
+    updateChart();
+  });
 </script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
