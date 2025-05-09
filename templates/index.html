@@ -117,13 +117,13 @@
     <div class="main-section">
         <div class="section-box">
             <h2 class="section-title">COIN SELECT</h2>
-            <div class="coin-grid">
-                <button>BTC</button><button>ETH</button><button>XRP</button>
-                <button>SOL</button><button>ADA</button><button>DOGE</button>
-                <button>MATIC</button><button>DOT</button>
-                <button>POL</button><button>LINK</button><button>AERGO</button><button>SUI</button>
+            <div class="coin-grid" id="coin-grid">
+                <button onclick="selectCoin('BTC')">BTC</button><button onclick="selectCoin('ETH')">ETH</button><button onclick="selectCoin('XRP')">XRP</button>
+                <button onclick="selectCoin('SOL')">SOL</button><button onclick="selectCoin('ADA')">ADA</button><button onclick="selectCoin('DOGE')">DOGE</button>
+                <button onclick="selectCoin('MATIC')">MATIC</button><button onclick="selectCoin('DOT')">DOT</button>
+                <button onclick="selectCoin('POL')">POL</button><button onclick="selectCoin('LINK')">LINK</button><button onclick="selectCoin('AERGO')">AERGO</button><button onclick="selectCoin('SUI')">SUI</button>
             </div>
-            <button class="update-btn">UPDATE</button>
+            <button class="update-btn" onclick="updateSelectedCoins()">UPDATE</button>
         </div>
         <div class="section-box">
             <h2 class="section-title">SELECTED COINS</h2>
@@ -148,14 +148,21 @@
         </div>
     </div>
     <script>
-        function toggleCryptoDog() {
-            const dogImage = document.getElementById('cryptodog-image');
-            const states = ['/static/happy.png', '/static/neutral.png', '/static/angry.png', '/static/excited.png'];
-            const sounds = ['/static/sniff.mp3', '/static/growl.mp3', '/static/bark.mp3'];
-            const randomIndex = Math.floor(Math.random() * states.length);
-            dogImage.src = states[randomIndex];
-            const audio = new Audio(sounds[randomIndex % sounds.length]);
-            audio.play();
+        let selectedCoins = [];
+
+        function selectCoin(coin) {
+            const index = selectedCoins.indexOf(coin);
+            if (index === -1) {
+                selectedCoins.push(coin);
+            } else {
+                selectedCoins.splice(index, 1);
+            }
+            updateSelectedCoins();
+        }
+
+        function updateSelectedCoins() {
+            const container = document.getElementById('selected-coins');
+            container.innerHTML = selectedCoins.map(coin => `<div>${coin}</div>`).join('');
         }
     </script>
 </body>
