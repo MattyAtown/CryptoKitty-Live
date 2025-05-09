@@ -93,7 +93,7 @@
     }
 
     // Initial trend update
-    const initialRawHistory = {{ price_history | tojson | safe }};
+    const initialRawHistory = JSON.parse('{{ price_history |const initialSelectedWithCryptoDog = JSON.parse('{{ selected |const selected = JSON.parse('{{ selected | tojson | safe }}'.replace(/&quot;/g,'"'));| safe }}'.replace(/&quot;/g,'"'));| safe }}'.replace(/&quot;/g,'"'));|const initialRawHistoryWithCryptoDog = JSON.parse('{{ price_history | tojson | safe }}'.replace(/&quot;/g,'"'));| safe }};
     const initialSelected = {{ selected | tojson | safe }};
     updateTrends(initialRawHistory, initialSelected);
   // Hooking CryptoDog into the 3-in-a-row trend logic
