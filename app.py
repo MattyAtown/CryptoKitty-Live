@@ -1,21 +1,23 @@
 from flask import Flask, render_template, jsonify, request
 import requests
-from datetime import datetime
 from collections import defaultdict
 
 app = Flask(__name__)
 
 COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT"]
 PRICE_HISTORY = defaultdict(list)
-TRENDS = {}
 
 COIN_SYMBOLS = {
-    "BTC": "BTC-USD", "ETH": "ETH-USD", "XRP": "XRP-USD",
-    "SOL": "SOL-USD", "ADA": "ADA-USD", "DOGE": "DOGE-USD",
-    "MATIC": "MATIC-USD", "DOT": "DOT-USD"
+    "BTC": "BTC-USD",
+    "ETH": "ETH-USD",
+    "XRP": "XRP-USD",
+    "SOL": "SOL-USD",
+    "ADA": "ADA-USD",
+    "DOGE": "DOGE-USD",
+    "MATIC": "MATIC-USD",
+    "DOT": "DOT-USD"
 }
 
-# Fetch live prices from Coinbase
 def fetch_price(coin):
     try:
         symbol = COIN_SYMBOLS.get(coin)
@@ -32,7 +34,7 @@ def fetch_price(coin):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    selected = request.form.get("coins", "").split(",") if request.method == "POST" else []
+    selected = request.form.get("coins", "").split(",") if request.method == "POST" else COINS
     prices = {coin: fetch_price(coin) for coin in selected}
     
     # Determine trends
