@@ -26,6 +26,57 @@
 
   // Bind Update button
   document.getElementById('updateButton').addEventListener('click', fetchPrices);
+// Price history and trend detection
+  const priceHistory = {};
+
+  // Fetch live prices for selected coins
+  function fetchPrices() {
+    const selectedCoinArray = Array.from(selectedCoins);
+    if (selectedCoinArray.length === 0) {
+      alert("Please select at least one coin.");
+      return;
+    }
+
+    fetch('/api/prices')
+      .then(response => response.json())
+      .then(data => {
+        const pricesList = document.getElementById('pricesList');
+        const topRisersList = document.getElementById('topRisersList');
+        pricesList.innerHTML = '';
+        topRisersList.innerHTML = '';
+
+        selectedCoinArray.forEach(coin => {
+          const price = data[coin] || "Loading...";
+          if (!priceHistory[coin]) priceHistory[coin] = [];
+          priceHistory[coin].push(price);
+          if (priceHistory[coin].length > 10) priceHistory[coin] = priceHistory[coin].slice(-10);
+
+          // Determine trend (3-in-a-row rule)
+          let trend = "Stable";
+          if (priceHistory[coin].length >= 3) {
+            const lastThree = priceHistory[coin].slice(-3);
+            if (lastThree[2] > lastThree[1] && lastThree[1] > lastThree[0]) {
+              trend = "Riser";
+            } else if (lastThree[2] < lastThree[1] && lastThree[1] < lastThree[0]) {
+              trend = "Warning";
+            }
+          }
+
+          // Add to Prices & Change panel
+          pricesList.innerHTML += `<li>${coin}: $${price} <span class="badge ${trend.toLowerCase()}">${trend}</span></li>`;
+
+          // Add to Top Risers panel if Riser
+          if (trend === "Riser") {
+            const percentChange = ((price - priceHistory[coin][0]) / priceHistory[coin][0] * 100).toFixed(2);
+            topRisersList.innerHTML += `<li>${coin}: +${percentChange}%</li>`;
+          }
+        });
+      })
+      .catch(error => console.error("Error fetching prices:", error));
+  }
+
+  // Bind Update button
+  document.getElementById('updateButton').addEventListener('click', fetchPrices);
 </script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
