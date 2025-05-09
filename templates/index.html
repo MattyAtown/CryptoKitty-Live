@@ -1,207 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CryptoKitty Elite v2.2</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js">// Update the chart on every price fetch
-function updateChart() {
-  const datasets = Array.from(selectedCoins).map(coin => {
-    const prices = priceHistory[coin] || [];
-    if (prices.length === 0) return null;
-
-    // Calculate percentage changes for the chart
-    const basePrice = prices[0] || 1;
-    const percentChanges = prices.map(p => ((p - basePrice) / basePrice) * 100);
-
-    return {
-      label: coin,
-      data: percentChanges,
-      borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      pointRadius: 3,
-      borderWidth: 2,
-      fill: false,
-      tension: 0.3
-    };
-  }).filter(Boolean);
-
-  // Update the chart data
-  priceChart.data.datasets = datasets;
-  priceChart.update();
-}
-
-// Fetch prices on load to populate the chart initially
-fetchPrices();
-updateChart();
-
-</script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link rel="stylesheet" href="/static/cryptokitty.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoKitty 😼</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #00FFFF;
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            color: #00FFFF;
+        }
+        .logo {
+            width: 150px;
+        }
+        .cryptodog-toggle {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        .banner {
+            background-color: #222;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            color: #FFFF00;
+            font-size: 1.2em;
+            text-align: center;
+            animation: blink 2s infinite alternate;
+        }
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.6; }
+        }
+        .main-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .section-box {
+            flex: 1;
+            min-width: 250px;
+            background-color: #111;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .section-title {
+            font-size: 1.5em;
+            color: #00FFFF;
+            margin-bottom: 15px;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            background-color: #111;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .update-btn {
+            background-color: #00FFFF;
+            color: #111;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .coin-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .coin-grid button {
+            background-color: #222;
+            color: #00FFFF;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .coin-grid button.selected {
+            background-color: #00FFFF;
+            color: #111;
+        }
+    </style>
 </head>
-
 <body>
-<div class="main-wrapper">
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="cryptoDogToggle" onclick="toggleCryptoDog()">🐶 CryptoDog</div>
-    <h1>🐱 CryptoKitty Elite Tracker</h1>
-    <div class="top-right-logo">
-      <img src="/static/logo.png" alt="Logo" />
+    <div class="header">
+        <h1>Crypto Kitty 😼</h1>
+        <img src="aim_logo.png" alt="AiM Logo" class="logo">
+        <img src="cryptodog_toggle.png" alt="CryptoDog" class="cryptodog-toggle">
     </div>
-  </div>
-
-  <!-- Flashing Banner -->
-  <div class="alert-banner" id="alertBanner">
-    <div id="newsTicker" class="news-ticker">Loading news...</div>
-  </div>
-
-  <!-- 4-Panel Layout -->
-  <div class="content-row">
-    <div class="panel coins-panel">
-      <h2>Select Coins</h2>
-      <select id="coinSelector" multiple size="10"></select><br><br>
-      <button id="updateButton">Update</button>
+    <div class="banner">Live News and Price Alerts Will Appear Here</div>
+    <div class="main-section">
+        <div class="section-box">
+            <h2 class="section-title">COIN SELECT</h2>
+            <div class="coin-grid">
+                <button>BTC</button><button>ETH</button><button>XRP</button>
+                <button>SOL</button><button>ADA</button><button>DOGE</button>
+                <button>MATIC</button><button>DOT</button>
+                <button>POL</button><button>LINK</button><button>AERGO</button><button>SUI</button>
+            </div>
+            <button class="update-btn">UPDATE</button>
+        </div>
+        <div class="section-box">
+            <h2 class="section-title">SELECTED COINS</h2>
+            <div id="selected-coins"></div>
+        </div>
+        <div class="section-box">
+            <h2 class="section-title">CRYPTODOG</h2>
+            <div id="cryptodog"></div>
+        </div>
+        <div class="section-box" style="flex: 2;">
+            <h2 class="section-title">LIVE CHART</h2>
+            <div class="chart-container" id="chart"></div>
+            <div class="time-select">
+                <button>5 MIN</button>
+                <button>10 MIN</button>
+                <button>20 MIN</button>
+                <button>30 MIN</button>
+                <button>1 HR</button>
+                <button>1 DAY</button>
+                <button>1 WEEK</button>
+            </div>
+        </div>
     </div>
-
-    <div class="panel prices-panel">
-      <h2>📈 Prices & Change</h2>
-      <ul id="pricesList"></ul>
-      <h3>🚀 Top Risers</h3>
-      <ul id="topRisersList"></ul>
-    </div>
-
-    <div class="panel cryptodog-panel">
-      <h2>🐶 CryptoDog</h2>
-      <div id="cryptoDogWidget" class="cryptodog-widget" style="display: none;">
-        <img id="dogImage" src="/static/neutral.png" alt="Dog Face" />
-        <div id="cryptoDogAlerts" class="dog-alerts"></div>
-      </div>
-    </div>
-
-    <div class="panel chart-panel">
-      <h2>📊 Live Chart</h2>
-      <canvas id="priceChart"></canvas>
-    </div>
-  </div>
-</div>
-
-<script>
-const defaultCoins = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT"];
-const coinSelector = document.getElementById('coinSelector');
-const selectedCoins = new Set();
-const priceHistory = {};
-
-// Populate the coin selector
-defaultCoins.forEach(coin => {
-  const option = document.createElement('option');
-  option.value = coin;
-  option.textContent = coin;
-  coinSelector.appendChild(option);
-});
-
-// Double-click to select/deselect coins
-coinSelector.addEventListener('dblclick', (e) => {
-  const coin = e.target.value;
-  if (selectedCoins.has(coin)) {
-    selectedCoins.delete(coin);
-  } else {
-    selectedCoins.add(coin);
-  }
-  console.log("Selected Coins:", Array.from(selectedCoins));
-  fetchPrices();
-  updateChart();
-});
-
-// Fetch live prices and update top risers
-function fetchPrices() {
-  const selectedCoinArray = Array.from(selectedCoins);
-  if (selectedCoinArray.length === 0) {
-    alert("Please select at least one coin.");
-    return;
-  }
-
-  fetch('/api/price-history')
-    .then(response => response.json())
-    .then(data => {
-      const pricesList = document.getElementById('pricesList');
-      const topRisersList = document.getElementById('topRisersList');
-      pricesList.innerHTML = '';
-      topRisersList.innerHTML = '';
-
-      selectedCoinArray.forEach(coin => {
-        const history = data[coin] || [];
-        if (!priceHistory[coin]) priceHistory[coin] = [];
-        priceHistory[coin] = history;
-
-        const currentPrice = history[history.length - 1] || 0;
-        pricesList.innerHTML += `<li>${coin}: $${currentPrice}</li>`;
-
-        const lastThree = history.slice(-3);
-        if (lastThree.length === 3 && lastThree[2] > lastThree[1] && lastThree[1] > lastThree[0]) {
-          const percentChange = ((lastThree[2] - lastThree[0]) / lastThree[0] * 100).toFixed(2);
-          topRisersList.innerHTML += `<li>${coin}: +${percentChange}%</li>`;
-        }
-      });
-    })
-    .catch(error => console.error("Error fetching prices:", error));
-}
-
-// Initialize the chart
-const ctx = document.getElementById('priceChart').getContext('2d');
-const priceChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: Array.from({ length: 10 }, (_, i) => (9 - i) * 5 + ' min ago'),
-    datasets: []
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: {
-        beginAtZero: false,
-        title: {
-          display: true,
-          text: '% Change'
-        },
-        ticks: {
-          callback: value => value.toFixed(1) + '%'
-        }
-      }
-    },
-    plugins: {
-      legend: {
-        labels: {
-          color: '#fff'
-        }
-      }
-    }
-  }
-});
-
-// Update the chart on every price fetch
-function updateChart() {
-  const datasets = Array.from(selectedCoins).map(coin => {
-    const prices = priceHistory[coin] || [];
-    if (prices.length === 0) return null;
-
-    const basePrice = prices[0];
-    const percentChanges = prices.map(p => ((p - basePrice) / basePrice) * 100);
-
-    return {
-      label: coin,
-      data: percentChanges,
-      borderColor: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      pointRadius: 3,
-      borderWidth: 2,
-      fill: false,
-      tension: 0.3
-    };
-  }).filter(Boolean);
-
-  priceChart.data.datasets = datasets;
-  priceChart.update();
-}
-
-</script>
 </body>
 </html>
