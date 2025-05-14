@@ -54,18 +54,19 @@ def get_prices():
                 history["prices"].pop(0)
                 history["timestamps"].pop(0)
 
-            # Calculate percentage change
+            # Calculate percentage change based on the latest two points
             if len(history["prices"]) > 1:
-                old_price = history["prices"][0]
+                old_price = history["prices"][-2]  # Use the second last point to avoid early dropouts
                 percentage_change = ((current_price - old_price) / old_price) * 100
             else:
                 percentage_change = 0.0
 
+            # Ensure the coin's history is always preserved
             prices[coin] = {
                 "price": current_price,
                 "change": round(percentage_change, 2),
-                "timestamps": history["timestamps"],
-                "prices": history["prices"]
+                "timestamps": list(history["timestamps"]),
+                "prices": list(history["prices"])
             }
         except Exception as e:
             print(f"Error fetching price for {coin}: {e}")
