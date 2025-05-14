@@ -22,9 +22,20 @@
             background-color: rgba(0, 0, 0, 0.9);
             justify-content: space-between;
             position: relative;
+            box-shadow: 0 0 20px #00ffff;
         }
         .logo {
             width: 160px;
+        }
+        .title {
+            flex: 1;
+            text-align: center;
+            font-size: 48px;
+            color: #00ffff;
+            text-transform: none;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #00ffff;
         }
         .crypto-dog-widget {
             width: 160px;
@@ -53,16 +64,6 @@
         .dropdown:hover {
             background-color: #ff00ff;
             color: #ffffff;
-        }
-        .title {
-            flex: 1;
-            text-align: center;
-            font-size: 48px;
-            color: #00ffff;
-            text-transform: none;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #00ffff;
         }
         .container {
             display: flex;
@@ -155,22 +156,6 @@
         </div>
     </div>
 
-    <script>
-        function fetchNews() {
-            const news = [
-                "BTC hits new high!",
-                "ETH 2.0 upgrade successful!",
-                "XRP gains momentum as lawsuits settle!",
-                "SOL breaks past $100!",
-                "ADA partners with major financial institutions!",
-                "DOGE to the moon once again!"
-            ];
-            const randomNews = news[Math.floor(Math.random() * news.length)];
-            document.getElementById('flashing-banner').textContent = randomNews;
-        }
-
-        setInterval(fetchNews, 300000);  // Update every 5 minutes
-        fetchNews();  // Initial call
-    </script>
+    <script src="/static/js/cryptokitty.js"></script>
 </body>
 </html>
