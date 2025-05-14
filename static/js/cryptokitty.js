@@ -22,6 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedCoins.push(checkbox.value);
         });
 
+        if (selectedCoins.length === 0) return;
+
         fetch('/prices', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -37,21 +39,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 const coinData = data.prices[coin];
                 if (!coinData) return;
 
-                datasets.push({
+                const latestPrice = coinData.prices.slice(-1)[0];
+                const change = coinData.change;
+
+                // Create or update dataset
+                const dataset = {
                     label: coin,
                     data: coinData.prices,
                     borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
                     borderWidth: 2,
-                    fill: false
-                });
+                    fill: false,
+                    tension: 0.3
+                };
 
+                datasets.push(dataset);
+
+                // Update coin list
                 const priceElement = document.createElement('li');
-                const latestPrice = coinData.prices.slice(-1)[0];
-                const change = coinData.change;
                 priceElement.textContent = `${coin}: $${latestPrice} (${change}%)`;
                 document.getElementById('selected-coins').appendChild(priceElement);
             });
 
+            // Update graph
+            if (cryptoChart.data.labels.length > 20) cryptoChart.data.labels.shift();
             cryptoChart.data.labels.push(now);
             cryptoChart.data.datasets = datasets;
             cryptoChart.update();
