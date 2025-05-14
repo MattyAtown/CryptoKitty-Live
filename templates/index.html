@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CryptoKitty</title>
+    <title>CryptoKitty Elite Tracker</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             background-color: #000000;
@@ -17,31 +18,54 @@
         .header-container {
             display: flex;
             align-items: center;
-            padding: 30px 50px;
+            padding: 20px 50px;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: space-between;
         }
         .logo {
             width: 160px;
-            margin-right: 30px;
         }
         .title {
-            font-size: 42px;
+            font-size: 48px;
             color: #00ffff;
             text-transform: none;
             font-weight: 700;
             letter-spacing: 2px;
             text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #00ffff;
         }
-        .dog-container {
+        .crypto-dog-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        .crypto-dog-container img {
+            width: 160px;
+            cursor: pointer;
+        }
+        .container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 50px;
+            flex-wrap: wrap;
+            padding: 20px;
         }
-        .crypto-dog {
-            width: 300px;
-            margin-bottom: 20px;
+        .coin-selection, .coin-updates, .crypto-dog {
+            flex: 1;
+            margin: 20px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 30px #00ffff;
+            min-width: 250px;
         }
-        .button-container button {
+        .live-graph {
+            flex-basis: 100%;
+            margin: 20px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 30px #00ffff;
+        }
+        button {
             padding: 15px 30px;
             background-color: #00ffff;
             color: #000000;
@@ -53,7 +77,7 @@
             margin: 10px;
             transition: all 0.3s ease;
         }
-        .button-container button:hover {
+        button:hover {
             background-color: #ff00ff;
             color: #ffffff;
         }
@@ -62,47 +86,48 @@
 <body>
     <div class="header-container">
         <img src="/static/images/logo.png" alt="AiM Logo" class="logo">
-        <div class="title">CryptoKitty - CryptoDog Alerts</div>
-    </div>
-
-    <div class="dog-container">
-        <img id="crypto-dog" src="/static/images/neutral.png" alt="CryptoDog" class="crypto-dog">
-        <div class="button-container">
-            <button onclick="setDogMood('happy')">Happy</button>
-            <button onclick="setDogMood('neutral')">Neutral</button>
-            <button onclick="setDogMood('angry')">Angry</button>
-            <button onclick="setDogMood('excited')">Excited</button>
+        <div class="title">CryptoKitty Elite Tracker 🐱</div>
+        <div class="crypto-dog-container">
+            <img id="crypto-dog" src="/static/images/neutral.png" alt="CryptoDog" onclick="toggleCryptoDog()">
         </div>
     </div>
 
-    <audio id="happy-sound" src="/static/sounds/sniff.mp3"></audio>
-    <audio id="neutral-sound" src="/static/sounds/sniff.mp3"></audio>
-    <audio id="angry-sound" src="/static/sounds/growl.mp3"></audio>
-    <audio id="excited-sound" src="/static/sounds/bark.mp3"></audio>
+    <div class="container">
+        <div class="coin-selection">
+            <h2>Coin Selection</h2>
+            <ul id="coin-list"></ul>
+            <button onclick="updateSelectedCoins()">Update</button>
+        </div>
+
+        <div class="coin-updates">
+            <h2>Selected Coins and Updates</h2>
+            <ul id="selected-coins"></ul>
+        </div>
+
+        <div class="crypto-dog">
+            <h2>CryptoDog Status</h2>
+            <img id="crypto-dog-img" src="/static/images/neutral.png" alt="CryptoDog">
+        </div>
+
+        <div class="live-graph">
+            <h2>Live Graph</h2>
+            <canvas id="crypto-graph"></canvas>
+            <button onclick="updateGraph(5)">Last 5 Min</button>
+            <button onclick="updateGraph(15)">Last 15 Min</button>
+            <button onclick="updateGraph(30)">Last 30 Min</button>
+            <button onclick="updateGraph(60)">Last 1 Hr</button>
+            <button onclick="updateGraph(1440)">Last 1 Day</button>
+        </div>
+    </div>
 
     <script>
-        function setDogMood(mood) {
-            const dogImage = document.getElementById('crypto-dog');
-            const sounds = {
-                happy: '/static/images/happy.png',
-                neutral: '/static/images/neutral.png',
-                angry: '/static/images/angry.png',
-                excited: '/static/images/excited.png'
-            };
-            const soundEffects = {
-                happy: 'happy-sound',
-                neutral: 'neutral-sound',
-                angry: 'angry-sound',
-                excited: 'excited-sound'
-            };
-
-            // Set the image
-            dogImage.src = sounds[mood];
-
-            // Play the sound
-            const sound = document.getElementById(soundEffects[mood]);
-            sound.currentTime = 0;
-            sound.play();
+        function toggleCryptoDog() {
+            const dogImg = document.getElementById('crypto-dog-img');
+            if (dogImg.style.display === 'none') {
+                dogImg.style.display = 'block';
+            } else {
+                dogImg.style.display = 'none';
+            }
         }
     </script>
 </body>
