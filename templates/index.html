@@ -79,9 +79,23 @@
             margin-left: auto;
             margin-right: auto;
         }
-        @keyframes flash {
-            0% { background-color: #ff00ff; color: #ffffff; }
-            100% { background-color: #00ffff; color: #000000; }
+        .graph-container {
+            flex: 2;
+            margin: 20px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 30px #00ffff;
+            min-width: 500px;
+        }
+        .coin-selection {
+            flex: 1;
+            margin: 20px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 30px #00ffff;
+            min-width: 250px;
         }
     </style>
 </head>
@@ -96,7 +110,7 @@
 
     <div id="flashing-banner" class="flashing-banner">Loading Crypto News...</div>
 
-    <div class="container">
+    <div class="container" style="display: flex;">
         <div class="coin-selection">
             <h2>Coin Selection</h2>
             <ul id="coin-list">
@@ -116,17 +130,7 @@
             <button onclick="updateSelectedCoins()">Update</button>
         </div>
 
-        <div class="coin-updates">
-            <h2>Selected Coins and Updates</h2>
-            <ul id="selected-coins"></ul>
-        </div>
-
-        <div class="crypto-dog-status">
-            <h2>CryptoDog Status</h2>
-            <img id="crypto-dog-img" src="/static/images/neutral.png" alt="CryptoDog">
-        </div>
-
-        <div class="live-graph">
+        <div class="graph-container">
             <h2>Live Graph</h2>
             <canvas id="crypto-graph"></canvas>
             <button onclick="updateGraph(5)">Last 5 Min</button>
