@@ -57,7 +57,7 @@ def get_prices():
             else:
                 history["percentage_changes"].append(0.0)
 
-            # Build the response data
+            # Ensure the full history is included in the response
             prices[coin] = {
                 "price": current_price,
                 "change": round(history["percentage_changes"][-1], 2),
