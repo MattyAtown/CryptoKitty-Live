@@ -1,9 +1,11 @@
 from flask import Flask, render_template, jsonify, request
+from flask_cors import CORS
 import requests
 from collections import defaultdict
 import os
 
 app = Flask(__name__)
+CORS(app)
 
 COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "POL", "LINK", "AERGO", "SUI"]
 
@@ -47,7 +49,7 @@ def get_prices():
             history["prices"].append(current_price)
             history["timestamps"].append(data['time'])
 
-            # Limit history to last 10 data points
+            # Limit history to last 20 data points
             if len(history["prices"]) > 20:
                 history["prices"].pop(0)
                 history["timestamps"].pop(0)
