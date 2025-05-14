@@ -27,6 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateSelectedCoins() {
         const selectedCoins = [];
+        const coinListElement = document.getElementById('selected-coins');
+        coinListElement.innerHTML = '';
+
         document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
             selectedCoins.push(checkbox.value);
         });
@@ -71,6 +74,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Update dataset
                 coinDatasets[coin].data.push(latestPrice);
                 if (coinDatasets[coin].data.length > 20) coinDatasets[coin].data.shift();
+
+                // Update coin list
+                const priceElement = document.createElement('li');
+                priceElement.textContent = `${coin}: $${latestPrice} (${change}%)`;
+                coinListElement.appendChild(priceElement);
 
                 // Handle CryptoDog logic for BTC
                 if (coin === 'BTC' && cryptoDogActive) {
