@@ -41,56 +41,51 @@
             right: 20px;
             z-index: 100;
         }
-        .crypto-dog-container img {
-            width: 160px;
-            cursor: pointer;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            padding: 20px;
-        }
-        .coin-selection, .coin-updates, .crypto-dog {
-            flex: 1;
-            margin: 20px;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 20px;
-            box-shadow: 0 0 30px #00ffff;
-            min-width: 250px;
-        }
-        .live-graph {
-            flex-basis: 100%;
-            margin: 20px;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 20px;
-            box-shadow: 0 0 30px #00ffff;
-        }
-        button {
-            padding: 15px 30px;
+        .crypto-dog-button {
             background-color: #00ffff;
             color: #000000;
             border: none;
             border-radius: 10px;
-            font-size: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            margin: 10px;
+            margin-bottom: 10px;
             transition: all 0.3s ease;
         }
-        button:hover {
+        .crypto-dog-button:hover {
             background-color: #ff00ff;
             color: #ffffff;
         }
-        .coin-item {
+        .crypto-dog-status img {
+            width: 150px;
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            transition: transform 0.2s;
+        }
+        .login-signup-container {
+            position: fixed;
+            top: 20px;
+            right: 150px;
+            z-index: 100;
+        }
+        .login-signup-button {
+            background-color: #ff00ff;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
             margin-bottom: 10px;
+            transition: all 0.3s ease;
         }
-        .price-change-positive {
-            color: #00ff00;
-        }
-        .price-change-negative {
-            color: #ff0000;
+        .login-signup-button:hover {
+            background-color: #00ffff;
+            color: #000000;
         }
     </style>
 </head>
@@ -98,8 +93,11 @@
     <div class="header-container">
         <img src="/static/images/logo.png" alt="AiM Logo" class="logo">
         <div class="title">CryptoKitty Elite Tracker 🐱</div>
+        <div class="login-signup-container">
+            <button class="login-signup-button" onclick="window.location.href='/login_signup'">Login / Sign Up</button>
+        </div>
         <div class="crypto-dog-container">
-            <img id="crypto-dog" src="/static/images/neutral.png" alt="CryptoDog" onclick="toggleCryptoDog()">
+            <button class="crypto-dog-button" onclick="toggleCryptoDog()">CryptoDog</button>
         </div>
     </div>
 
@@ -107,18 +105,18 @@
         <div class="coin-selection">
             <h2>Coin Selection</h2>
             <ul id="coin-list">
-                <li class="coin-item"><input type="checkbox" value="BTC"> BTC (Bitcoin)</li>
-                <li class="coin-item"><input type="checkbox" value="ETH"> ETH (Ethereum)</li>
-                <li class="coin-item"><input type="checkbox" value="XRP"> XRP (Ripple)</li>
-                <li class="coin-item"><input type="checkbox" value="SOL"> SOL (Solana)</li>
-                <li class="coin-item"><input type="checkbox" value="ADA"> ADA (Cardano)</li>
-                <li class="coin-item"><input type="checkbox" value="DOGE"> DOGE (Dogecoin)</li>
-                <li class="coin-item"><input type="checkbox" value="MATIC"> MATIC (Polygon)</li>
-                <li class="coin-item"><input type="checkbox" value="DOT"> DOT (Polkadot)</li>
-                <li class="coin-item"><input type="checkbox" value="LINK"> LINK (Chainlink)</li>
-                <li class="coin-item"><input type="checkbox" value="POL"> POL (Polymath)</li>
-                <li class="coin-item"><input type="checkbox" value="AERGO"> AERGO (Aergo)</li>
-                <li class="coin-item"><input type="checkbox" value="SUI"> SUI (Sui Network)</li>
+                <li><input type="checkbox" value="BTC"> BTC (Bitcoin)</li>
+                <li><input type="checkbox" value="ETH"> ETH (Ethereum)</li>
+                <li><input type="checkbox" value="XRP"> XRP (Ripple)</li>
+                <li><input type="checkbox" value="SOL"> SOL (Solana)</li>
+                <li><input type="checkbox" value="ADA"> ADA (Cardano)</li>
+                <li><input type="checkbox" value="DOGE"> DOGE (Dogecoin)</li>
+                <li><input type="checkbox" value="MATIC"> MATIC (Polygon)</li>
+                <li><input type="checkbox" value="DOT"> DOT (Polkadot)</li>
+                <li><input type="checkbox" value="LINK"> LINK (Chainlink)</li>
+                <li><input type="checkbox" value="POL"> POL (Polymath)</li>
+                <li><input type="checkbox" value="AERGO"> AERGO (Aergo)</li>
+                <li><input type="checkbox" value="SUI"> SUI (Sui Network)</li>
             </ul>
             <button onclick="updateSelectedCoins()">Update</button>
         </div>
@@ -128,7 +126,7 @@
             <ul id="selected-coins"></ul>
         </div>
 
-        <div class="crypto-dog">
+        <div class="crypto-dog-status">
             <h2>CryptoDog Status</h2>
             <img id="crypto-dog-img" src="/static/images/neutral.png" alt="CryptoDog">
         </div>
@@ -143,32 +141,5 @@
             <button onclick="updateGraph(1440)">Last 1 Day</button>
         </div>
     </div>
-
-    <script>
-        function updateSelectedCoins() {
-            const selectedCoins = [];
-            document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
-                selectedCoins.push(checkbox.value);
-            });
-
-            fetch('/prices', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ coins: selectedCoins })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const coinList = document.getElementById('selected-coins');
-                coinList.innerHTML = '';
-                for (const [coin, priceData] of Object.entries(data.prices)) {
-                    const listItem = document.createElement('li');
-                    const percentageChange = ((priceData.change / priceData.old_price) * 100).toFixed(2);
-                    listItem.innerHTML = `${coin}: $${priceData.price} (<span class="${percentageChange >= 0 ? 'price-change-positive' : 'price-change-negative'}">${percentageChange}%</span>)`;
-                    coinList.appendChild(listItem);
-                }
-            })
-            .catch(error => console.error('Error fetching prices:', error));
-        }
-    </script>
 </body>
 </html>
