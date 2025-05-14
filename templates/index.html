@@ -35,46 +35,6 @@
             letter-spacing: 2px;
             text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #00ffff;
         }
-        .crypto-dog-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-        }
-        .crypto-dog-button {
-            background-color: #00ffff;
-            color: #000000;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 20px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-        .crypto-dog-button:hover {
-            background-color: #ff00ff;
-            color: #ffffff;
-        }
-        .crypto-dog-status {
-            flex: 1;
-            margin: 20px;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 20px;
-            box-shadow: 0 0 30px #00ffff;
-            min-width: 250px;
-            text-align: center;
-        }
-        .crypto-dog-status img {
-            width: 120px;
-            margin-bottom: 20px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            transition: transform 0.2s;
-        }
         .graph-container {
             flex: 2;
             margin: 20px;
@@ -99,12 +59,7 @@
     <div class="header-container">
         <img src="/static/images/logo.png" alt="AiM Logo" class="logo">
         <div class="title">CryptoKitty Elite Tracker 🐱</div>
-        <div class="crypto-dog-container">
-            <button class="crypto-dog-button" onclick="toggleCryptoDog()">CryptoDog</button>
-        </div>
     </div>
-
-    <div id="flashing-banner" class="flashing-banner">Loading Crypto News...</div>
 
     <div class="container" style="display: flex;">
         <div class="coin-selection">
@@ -154,20 +109,24 @@
             document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
                 selectedCoins.push(checkbox.value);
             });
-            console.log("Selected Coins:", selectedCoins);
-            updateGraph(selectedCoins);
-        }
-
-        function updateGraph(selectedCoins) {
-            cryptoChart.data.labels.push(new Date().toLocaleTimeString());
-            cryptoChart.data.datasets = selectedCoins.map(coin => ({
-                label: coin,
-                data: Array(cryptoChart.data.labels.length).fill(0),
-                borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
-                borderWidth: 2,
-                fill: false
-            }));
-            cryptoChart.update();
+            fetch('/prices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ coins: selectedCoins })
+            })
+            .then(response => response.json())
+            .then(data => {
+                cryptoChart.data.labels = data.prices[selectedCoins[0]].timestamps;
+                cryptoChart.data.datasets = selectedCoins.map(coin => ({
+                    label: coin,
+                    data: data.prices[coin].prices,
+                    borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
+                    borderWidth: 2,
+                    fill: false
+                }));
+                cryptoChart.update();
+            })
+            .catch(error => console.error('Error fetching prices:', error));
         }
     </script>
 </body>
