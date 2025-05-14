@@ -12,18 +12,18 @@ COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "POL", "LINK
 PRICE_HISTORY = defaultdict(lambda: {"prices": [], "timestamps": []})
 
 COIN_SYMBOLS = {
-    "BTC": "BTC-USD",
-    "ETH": "ETH-USD",
-    "XRP": "XRP-USD",
-    "SOL": "SOL-USD",
-    "ADA": "ADA-USD",
-    "DOGE": "DOGE-USD",
-    "MATIC": "MATIC-USD",
-    "DOT": "DOT-USD",
-    "POL": "POL-USD",
-    "LINK": "LINK-USD",
-    "AERGO": "AERGO-USD",
-    "SUI": "SUI-USD"
+    "BTC": "bitcoin",
+    "ETH": "ethereum",
+    "XRP": "ripple",
+    "SOL": "solana",
+    "ADA": "cardano",
+    "DOGE": "dogecoin",
+    "MATIC": "polygon",
+    "DOT": "polkadot",
+    "POL": "polymath",
+    "LINK": "chainlink",
+    "AERGO": "aergo",
+    "SUI": "sui"
 }
 
 @app.route('/')
@@ -40,14 +40,14 @@ def get_prices():
         if not symbol:
             continue
         try:
-            response = requests.get(f"https://api.exchange.coinbase.com/products/{symbol}/ticker")
+            response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd")
             data = response.json()
-            current_price = float(data['price'])
+            current_price = float(data[symbol]['usd'])
 
             # Update price history
             history = PRICE_HISTORY[coin]
             history["prices"].append(current_price)
-            history["timestamps"].append(data['time'])
+            history["timestamps"].append(requests.get("https://worldtimeapi.org/api/timezone/etc/utc").json()["utc_datetime"])
 
             # Limit history to last 20 data points
             if len(history["prices"]) > 20:
