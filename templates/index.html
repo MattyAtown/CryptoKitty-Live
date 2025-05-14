@@ -57,27 +57,23 @@
             background-color: #ff00ff;
             color: #ffffff;
         }
+        .crypto-dog-status {
+            flex: 1;
+            margin: 20px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 30px #00ffff;
+            min-width: 250px;
+            text-align: center;
+        }
         .crypto-dog-status img {
-            width: 150px;
+            width: 120px;
             margin-bottom: 20px;
             display: block;
             margin-left: auto;
             margin-right: auto;
             transition: transform 0.2s;
-        }
-        .flashing-banner {
-            background-color: #ff00ff;
-            color: #ffffff;
-            padding: 15px 20px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 24px;
-            animation: flash 1s infinite alternate;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            width: 90%;
-            margin-left: auto;
-            margin-right: auto;
         }
         .graph-container {
             flex: 2;
@@ -133,39 +129,46 @@
         <div class="graph-container">
             <h2>Live Graph</h2>
             <canvas id="crypto-graph"></canvas>
-            <button onclick="updateGraph(5)">Last 5 Min</button>
-            <button onclick="updateGraph(15)">Last 15 Min</button>
-            <button onclick="updateGraph(30)">Last 30 Min</button>
-            <button onclick="updateGraph(60)">Last 1 Hr</button>
-            <button onclick="updateGraph(1440)">Last 1 Day</button>
         </div>
     </div>
 
     <script>
-        function toggleCryptoDog() {
-            const dogImg = document.getElementById('crypto-dog-img');
-            if (dogImg.style.display === 'none') {
-                dogImg.style.display = 'block';
-            } else {
-                dogImg.style.display = 'none';
+        const ctx = document.getElementById('crypto-graph').getContext('2d');
+        const cryptoChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { display: true, title: { display: true, text: 'Time' } },
+                    y: { display: true, title: { display: true, text: 'Percentage Change' } }
+                }
             }
+        });
+
+        function updateSelectedCoins() {
+            const selectedCoins = [];
+            document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedCoins.push(checkbox.value);
+            });
+            console.log("Selected Coins:", selectedCoins);
+            updateGraph(selectedCoins);
         }
 
-        function fetchNews() {
-            const news = [
-                "BTC hits new high!",
-                "ETH 2.0 upgrade successful!",
-                "XRP gains momentum as lawsuits settle!",
-                "SOL breaks past $100!",
-                "ADA partners with major financial institutions!",
-                "DOGE to the moon once again!"
-            ];
-            const randomNews = news[Math.floor(Math.random() * news.length)];
-            document.getElementById('flashing-banner').textContent = randomNews;
+        function updateGraph(selectedCoins) {
+            cryptoChart.data.labels.push(new Date().toLocaleTimeString());
+            cryptoChart.data.datasets = selectedCoins.map(coin => ({
+                label: coin,
+                data: Array(cryptoChart.data.labels.length).fill(0),
+                borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
+                borderWidth: 2,
+                fill: false
+            }));
+            cryptoChart.update();
         }
-
-        setInterval(fetchNews, 300000);  // Update every 5 minutes
-        fetchNews();  // Initial call
     </script>
 </body>
 </html>
