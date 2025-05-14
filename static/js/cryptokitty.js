@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(data => {
             const now = new Date().toLocaleTimeString();
             const datasets = [];
+            document.getElementById('selected-coins').innerHTML = '';
 
             selectedCoins.forEach(coin => {
                 const coinData = data.prices[coin];
@@ -45,7 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 const priceElement = document.createElement('li');
-                priceElement.textContent = `${coin}: $${coinData.prices.slice(-1)[0]} (${coinData.change}%)`;
+                const latestPrice = coinData.prices.slice(-1)[0];
+                const change = coinData.change;
+                priceElement.textContent = `${coin}: $${latestPrice} (${change}%)`;
                 document.getElementById('selected-coins').appendChild(priceElement);
             });
 
