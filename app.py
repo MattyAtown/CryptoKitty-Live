@@ -1,7 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 import requests
 from collections import defaultdict
-import random
 import os
 
 app = Flask(__name__)
@@ -49,7 +48,7 @@ def get_prices():
             history["timestamps"].append(data['time'])
 
             # Limit history to last 10 data points
-            if len(history["prices"]) > 10:
+            if len(history["prices"]) > 20:
                 history["prices"].pop(0)
                 history["timestamps"].pop(0)
 
