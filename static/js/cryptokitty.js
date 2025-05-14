@@ -17,6 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const coinDatasets = {};
+    let cryptoDogActive = false;
+    const sounds = {
+        excited: new Audio('/static/sounds/bark.mp3'),
+        happy: new Audio('/static/sounds/happy.mp3'),
+        angry: new Audio('/static/sounds/growl.mp3'),
+        neutral: new Audio('/static/sounds/sniff.mp3')
+    };
 
     function updateSelectedCoins() {
         const selectedCoins = [];
@@ -65,13 +72,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 coinDatasets[coin].data.push(latestPrice);
                 if (coinDatasets[coin].data.length > 20) coinDatasets[coin].data.shift();
 
-                // Update coin list
-                const priceElement = document.createElement('li');
-                priceElement.textContent = `${coin}: $${latestPrice} (${change}%)`;
-                document.getElementById('selected-coins').appendChild(priceElement);
-
                 // Handle CryptoDog logic for BTC
-                if (coin === 'BTC') {
+                if (coin === 'BTC' && cryptoDogActive) {
                     updateCryptoDog(coinData.percentage_changes);
                 }
             });
@@ -88,16 +90,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (percentageChanges.slice(-3).every(p => p > 0)) {
             dogImg.src = '/static/images/excited.png';
+            playSound('excited');
             updateBanner("Market is getting busy");
         } else if (changeSum > 0) {
             dogImg.src = '/static/images/happy.png';
+            playSound('happy');
             updateBanner("Good Market");
         } else if (changeSum < 0) {
             dogImg.src = '/static/images/angry.png';
+            playSound('angry');
             updateBanner("Market Downturn");
         } else {
             dogImg.src = '/static/images/neutral.png';
+            playSound('neutral');
             updateBanner("Market Stable");
+        }
+    }
+
+    function playSound(type) {
+        if (sounds[type]) {
+            sounds[type].play();
         }
     }
 
@@ -116,6 +128,10 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .catch(error => console.error('Error fetching top risers:', error));
     }
+
+    document.getElementById('crypto-dog-toggle').addEventListener('change', (event) => {
+        cryptoDogActive = event.target.value === 'on';
+    });
 
     // Initial load
     fetchTopRisers();
