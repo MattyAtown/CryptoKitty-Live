@@ -24,8 +24,6 @@ COIN_SYMBOLS = {
     "SUI": "SUI-USD"
 }
 
-DOG_STATES = ["happy", "neutral", "angry", "excited"]
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -34,33 +32,38 @@ def index():
 def get_prices():
     selected_coins = request.json.get('coins', [])
     prices = {}
-    
+
     for coin in selected_coins:
         symbol = COIN_SYMBOLS.get(coin)
         if not symbol:
             continue
-        
         try:
             response = requests.get(f"https://api.exchange.coinbase.com/products/{symbol}/ticker")
             data = response.json()
-            price = float(data['price'])
-            prices[coin] = price
-            
-            # Track price history for alert logic
-            PRICE_HISTORY[coin].append(price)
-            if len(PRICE_HISTORY[coin]) > 3:
+            current_price = float(data['price'])
+
+            # Calculate percentage change if history exists
+            if PRICE_HISTORY[coin]:
+                old_price = PRICE_HISTORY[coin][-1]
+                percentage_change = ((current_price - old_price) / old_price) * 100
+            else:
+                old_price = current_price
+                percentage_change = 0.0
+
+            # Store current price for next calculation
+            PRICE_HISTORY[coin].append(current_price)
+            if len(PRICE_HISTORY[coin]) > 5:
                 PRICE_HISTORY[coin].pop(0)
 
+            prices[coin] = {
+                "price": current_price,
+                "old_price": old_price,
+                "change": current_price - old_price
+            }
         except Exception as e:
             print(f"Error fetching price for {coin}: {e}")
-    
-    # Random CryptoDog state for testing
-    cryptodog_state = random.choice(DOG_STATES)
-    
-    return jsonify({
-        "prices": prices,
-        "cryptodog_state": cryptodog_state
-    })
+
+    return jsonify({"prices": prices})
 
 import os
 
