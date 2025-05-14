@@ -58,6 +58,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const priceElement = document.createElement('li');
                 priceElement.textContent = `${coin}: $${latestPrice} (${change}%)`;
                 document.getElementById('selected-coins').appendChild(priceElement);
+
+                // Handle CryptoDog logic for BTC
+                if (coin === 'BTC') {
+                    updateCryptoDog(coinData.percentage_changes);
+                }
             });
 
             // Update graph
@@ -69,40 +74,43 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch(error => console.error('Error fetching prices:', error));
     }
 
-    function toggleCryptoDog() {
-        const dogToggle = document.getElementById('crypto-dog-toggle').value;
+    function updateCryptoDog(percentageChanges) {
         const dogImg = document.getElementById('crypto-dog-img');
+        const changeSum = percentageChanges.slice(-5).reduce((acc, val) => acc + val, 0);
 
-        if (dogToggle === 'on') {
-            fetch('/prices', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ coins: ['BTC'] })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const btc = data.prices.BTC;
-                const lastPrice = btc.prices.slice(-1)[0];
-                const firstPrice = btc.prices[0];
-                const percentageChange = ((lastPrice - firstPrice) / firstPrice) * 100;
-
-                if (percentageChange > 2) {
-                    dogImg.src = '/static/images/excited.png';
-                } else if (percentageChange < -2) {
-                    dogImg.src = '/static/images/angry.png';
-                } else if (percentageChange > 0) {
-                    dogImg.src = '/static/images/happy.png';
-                } else {
-                    dogImg.src = '/static/images/neutral.png';
-                }
-            })
-            .catch(error => console.error('Error fetching BTC price:', error));
+        if (percentageChanges.slice(-3).every(p => p > 0)) {
+            dogImg.src = '/static/images/excited.png';
+            updateBanner("Market is getting busy");
+        } else if (changeSum > 0) {
+            dogImg.src = '/static/images/happy.png';
+            updateBanner("Good Market");
+        } else if (changeSum < 0) {
+            dogImg.src = '/static/images/angry.png';
+            updateBanner("Market Downturn");
         } else {
             dogImg.src = '/static/images/neutral.png';
+            updateBanner("Market Stable");
         }
+    }
+
+    function updateBanner(message) {
+        const banner = document.getElementById('flashing-banner');
+        banner.textContent = message;
+        setTimeout(fetchTopRisers, 15000);  // Switch back to top risers every 15 seconds
+    }
+
+    function fetchTopRisers() {
+        fetch('/top_risers')
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('flashing-banner');
+                banner.textContent = data.top_risers.join(' | ');
+            })
+            .catch(error => console.error('Error fetching top risers:', error));
     }
 
     // Initial load
     updateSelectedCoins();
+    fetchTopRisers();
     setInterval(updateSelectedCoins, 60000);  // Update every 60 seconds
 });
