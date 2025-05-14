@@ -2,12 +2,13 @@ from flask import Flask, render_template, jsonify, request
 import requests
 from collections import defaultdict
 import random
+import os
 
 app = Flask(__name__)
 
 COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "POL", "LINK", "AERGO", "SUI"]
 
-PRICE_HISTORY = defaultdict(list)
+PRICE_HISTORY = defaultdict(lambda: {"prices": [], "timestamps": []})
 
 COIN_SYMBOLS = {
     "BTC": "BTC-USD",
@@ -42,30 +43,33 @@ def get_prices():
             data = response.json()
             current_price = float(data['price'])
 
-            # Calculate percentage change if history exists
-            if PRICE_HISTORY[coin]:
-                old_price = PRICE_HISTORY[coin][-1]
+            # Update price history
+            history = PRICE_HISTORY[coin]
+            history["prices"].append(current_price)
+            history["timestamps"].append(data['time'])
+
+            # Limit history to last 10 data points
+            if len(history["prices"]) > 10:
+                history["prices"].pop(0)
+                history["timestamps"].pop(0)
+
+            # Calculate percentage change
+            if len(history["prices"]) > 1:
+                old_price = history["prices"][0]
                 percentage_change = ((current_price - old_price) / old_price) * 100
             else:
-                old_price = current_price
                 percentage_change = 0.0
-
-            # Store current price for next calculation
-            PRICE_HISTORY[coin].append(current_price)
-            if len(PRICE_HISTORY[coin]) > 5:
-                PRICE_HISTORY[coin].pop(0)
 
             prices[coin] = {
                 "price": current_price,
-                "old_price": old_price,
-                "change": current_price - old_price
+                "change": round(percentage_change, 2),
+                "timestamps": history["timestamps"],
+                "prices": history["prices"]
             }
         except Exception as e:
             print(f"Error fetching price for {coin}: {e}")
 
     return jsonify({"prices": prices})
-
-import os
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
