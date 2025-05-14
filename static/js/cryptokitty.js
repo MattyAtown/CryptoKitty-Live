@@ -11,10 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
             responsive: true,
             scales: {
                 x: { title: { display: true, text: 'Time' } },
-                y: { title: { display: true, text: 'Percentage Change' } }
+                y: { title: { display: true, text: 'Price (USD)' } }
             }
         }
     });
+
+    const coinDatasets = {};
 
     function updateSelectedCoins() {
         const selectedCoins = [];
@@ -32,8 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(response => response.json())
         .then(data => {
             const now = new Date().toLocaleTimeString();
-            const datasets = [];
-            document.getElementById('selected-coins').innerHTML = '';
 
             selectedCoins.forEach(coin => {
                 const coinData = data.prices[coin];
@@ -43,16 +43,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 const change = coinData.change;
 
                 // Create or update dataset
-                const dataset = {
-                    label: coin,
-                    data: coinData.prices,
-                    borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.3
-                };
+                if (!coinDatasets[coin]) {
+                    coinDatasets[coin] = {
+                        label: coin,
+                        data: [],
+                        borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.3
+                    };
+                    cryptoChart.data.datasets.push(coinDatasets[coin]);
+                }
 
-                datasets.push(dataset);
+                // Update data
+                coinDatasets[coin].data.push(latestPrice);
 
                 // Update coin list
                 const priceElement = document.createElement('li');
@@ -68,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Update graph
             if (cryptoChart.data.labels.length > 20) cryptoChart.data.labels.shift();
             cryptoChart.data.labels.push(now);
-            cryptoChart.data.datasets = datasets;
             cryptoChart.update();
         })
         .catch(error => console.error('Error fetching prices:', error));
