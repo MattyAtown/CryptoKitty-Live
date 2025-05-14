@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 import requests
-from collections import defaultdict
+from collections import defaultdict, deque
 import os
 
 app = Flask(__name__)
@@ -9,7 +9,7 @@ CORS(app)
 
 COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "POL", "LINK", "AERGO", "SUI"]
 
-PRICE_HISTORY = defaultdict(lambda: {"prices": [], "timestamps": []})
+PRICE_HISTORY = defaultdict(lambda: {"prices": deque(maxlen=20), "timestamps": deque(maxlen=20), "percentage_changes": deque(maxlen=20)})
 
 COIN_SYMBOLS = {
     "BTC": "bitcoin",
@@ -49,29 +49,37 @@ def get_prices():
             history["prices"].append(current_price)
             history["timestamps"].append(requests.get("https://worldtimeapi.org/api/timezone/etc/utc").json()["utc_datetime"])
 
-            # Limit history to last 20 data points
-            if len(history["prices"]) > 20:
-                history["prices"].pop(0)
-                history["timestamps"].pop(0)
-
             # Calculate percentage change based on the latest two points
             if len(history["prices"]) > 1:
-                old_price = history["prices"][-2]  # Use the second last point to avoid early dropouts
+                old_price = history["prices"][-2]
                 percentage_change = ((current_price - old_price) / old_price) * 100
+                history["percentage_changes"].append(round(percentage_change, 2))
             else:
-                percentage_change = 0.0
+                history["percentage_changes"].append(0.0)
 
-            # Ensure the coin's history is always preserved
+            # Build the response data
             prices[coin] = {
                 "price": current_price,
-                "change": round(percentage_change, 2),
+                "change": round(history["percentage_changes"][-1], 2),
                 "timestamps": list(history["timestamps"]),
-                "prices": list(history["prices"])
+                "prices": list(history["prices"]),
+                "percentage_changes": list(history["percentage_changes"])
             }
         except Exception as e:
             print(f"Error fetching price for {coin}: {e}")
 
     return jsonify({"prices": prices})
+
+@app.route('/top_risers', methods=['GET'])
+def top_risers():
+    try:
+        response = requests.get("https://api.coingecko.com/api/v3/coins/markets", params={"vs_currency": "usd", "order": "percent_change_24h_desc", "per_page": 3, "page": 1})
+        data = response.json()
+        top_risers = [f"{coin['symbol'].upper()}: +{coin['price_change_percentage_24h']}%" for coin in data[:3]]
+        return jsonify({"top_risers": top_risers})
+    except Exception as e:
+        print(f"Error fetching top risers: {e}")
+        return jsonify({"top_risers": []})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
