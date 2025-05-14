@@ -26,6 +26,8 @@
             width: 160px;
         }
         .title {
+            flex: 1;
+            text-align: center;
             font-size: 48px;
             color: #00ffff;
             text-transform: none;
@@ -81,6 +83,9 @@
             background-color: #ff00ff;
             color: #ffffff;
         }
+        .coin-item {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -95,7 +100,20 @@
     <div class="container">
         <div class="coin-selection">
             <h2>Coin Selection</h2>
-            <ul id="coin-list"></ul>
+            <ul id="coin-list">
+                <li class="coin-item"><input type="checkbox" value="BTC"> BTC (Bitcoin)</li>
+                <li class="coin-item"><input type="checkbox" value="ETH"> ETH (Ethereum)</li>
+                <li class="coin-item"><input type="checkbox" value="XRP"> XRP (Ripple)</li>
+                <li class="coin-item"><input type="checkbox" value="SOL"> SOL (Solana)</li>
+                <li class="coin-item"><input type="checkbox" value="ADA"> ADA (Cardano)</li>
+                <li class="coin-item"><input type="checkbox" value="DOGE"> DOGE (Dogecoin)</li>
+                <li class="coin-item"><input type="checkbox" value="MATIC"> MATIC (Polygon)</li>
+                <li class="coin-item"><input type="checkbox" value="DOT"> DOT (Polkadot)</li>
+                <li class="coin-item"><input type="checkbox" value="LINK"> LINK (Chainlink)</li>
+                <li class="coin-item"><input type="checkbox" value="POL"> POL (Polymath)</li>
+                <li class="coin-item"><input type="checkbox" value="AERGO"> AERGO (Aergo)</li>
+                <li class="coin-item"><input type="checkbox" value="SUI"> SUI (Sui Network)</li>
+            </ul>
             <button onclick="updateSelectedCoins()">Update</button>
         </div>
 
@@ -121,13 +139,13 @@
     </div>
 
     <script>
-        function toggleCryptoDog() {
-            const dogImg = document.getElementById('crypto-dog-img');
-            if (dogImg.style.display === 'none') {
-                dogImg.style.display = 'block';
-            } else {
-                dogImg.style.display = 'none';
-            }
+        function updateSelectedCoins() {
+            const selectedCoins = [];
+            document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedCoins.push(checkbox.value);
+            });
+            console.log("Selected Coins:", selectedCoins);
+            // Send the selected coins to the server (to be implemented)
         }
     </script>
 </body>
