@@ -1,7 +1,3 @@
-Flask                # Core web framework
-flask-cors           # CORS support for cross-origin API calls
-requests             # HTTP requests to external APIs
-gunicorn             # Production server (recommended for Render)
-pandas               # Data analysis and manipulation (optional, if you want to add graphs)
-matplotlib           # Plotting and visualization (optional, if you want to include charts)
-python-dotenv        # Environment variable management (optional, if you use .env files)
+flask
+requests
+gunicorn
