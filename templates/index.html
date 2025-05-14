@@ -21,6 +21,7 @@
             padding: 20px 50px;
             background-color: rgba(0, 0, 0, 0.9);
             justify-content: space-between;
+            position: relative;
         }
         .logo {
             width: 160px;
@@ -63,6 +64,49 @@
             letter-spacing: 2px;
             text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #00ffff;
         }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+        }
+        .coin-selection, .graph-container, .coin-updates {
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 30px #00ffff;
+            margin: 20px;
+            padding: 20px;
+            min-width: 300px;
+            flex: 1;
+            text-align: center;
+        }
+        .graph-container {
+            flex: 2;
+            min-width: 500px;
+        }
+        canvas {
+            width: 100% !important;
+            height: 400px !important;
+        }
+        .flashing-banner {
+            background-color: rgba(255, 0, 255, 0.2);
+            color: #ffffff;
+            padding: 15px 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 24px;
+            animation: flash 1s infinite alternate;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+        @keyframes flash {
+            0% { background-color: rgba(255, 0, 255, 0.2); color: #ffffff; }
+            100% { background-color: rgba(0, 255, 255, 0.2); color: #000000; }
+        }
     </style>
 </head>
 <body>
@@ -78,7 +122,9 @@
         </div>
     </div>
 
-    <div class="container" style="display: flex;">
+    <div id="flashing-banner" class="flashing-banner">Loading Crypto News...</div>
+
+    <div class="container">
         <div class="coin-selection">
             <h2>Coin Selection</h2>
             <ul id="coin-list">
@@ -110,37 +156,21 @@
     </div>
 
     <script>
-        function toggleCryptoDog() {
-            const dogToggle = document.getElementById('crypto-dog-toggle').value;
-            const dogImg = document.getElementById('crypto-dog-img');
-            if (dogToggle === 'on') {
-                const pricesUrl = '/prices';
-                fetch(pricesUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ coins: ["BTC"] })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const btc = data.prices.BTC;
-                    const lastPrice = btc.prices.slice(-1)[0];
-                    const firstPrice = btc.prices[0];
-                    const percentageChange = ((lastPrice - firstPrice) / firstPrice) * 100;
-                    if (percentageChange > 2) {
-                        dogImg.src = '/static/images/excited.png';
-                    } else if (percentageChange < -2) {
-                        dogImg.src = '/static/images/angry.png';
-                    } else if (percentageChange > 0) {
-                        dogImg.src = '/static/images/happy.png';
-                    } else {
-                        dogImg.src = '/static/images/neutral.png';
-                    }
-                })
-                .catch(error => console.error('Error fetching BTC price:', error));
-            } else {
-                dogImg.src = '/static/images/neutral.png';
-            }
+        function fetchNews() {
+            const news = [
+                "BTC hits new high!",
+                "ETH 2.0 upgrade successful!",
+                "XRP gains momentum as lawsuits settle!",
+                "SOL breaks past $100!",
+                "ADA partners with major financial institutions!",
+                "DOGE to the moon once again!"
+            ];
+            const randomNews = news[Math.floor(Math.random() * news.length)];
+            document.getElementById('flashing-banner').textContent = randomNews;
         }
+
+        setInterval(fetchNews, 300000);  // Update every 5 minutes
+        fetchNews();  // Initial call
     </script>
 </body>
 </html>
