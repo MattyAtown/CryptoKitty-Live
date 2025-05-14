@@ -86,6 +86,12 @@
         .coin-item {
             margin-bottom: 10px;
         }
+        .price-change-positive {
+            color: #00ff00;
+        }
+        .price-change-negative {
+            color: #ff0000;
+        }
     </style>
 </head>
 <body>
@@ -144,8 +150,24 @@
             document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
                 selectedCoins.push(checkbox.value);
             });
-            console.log("Selected Coins:", selectedCoins);
-            // Send the selected coins to the server (to be implemented)
+
+            fetch('/prices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ coins: selectedCoins })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const coinList = document.getElementById('selected-coins');
+                coinList.innerHTML = '';
+                for (const [coin, priceData] of Object.entries(data.prices)) {
+                    const listItem = document.createElement('li');
+                    const percentageChange = ((priceData.change / priceData.old_price) * 100).toFixed(2);
+                    listItem.innerHTML = `${coin}: $${priceData.price} (<span class="${percentageChange >= 0 ? 'price-change-positive' : 'price-change-negative'}">${percentageChange}%</span>)`;
+                    coinList.appendChild(listItem);
+                }
+            })
+            .catch(error => console.error('Error fetching prices:', error));
         }
     </script>
 </body>
