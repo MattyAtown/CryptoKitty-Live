@@ -34,7 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(response => response.json())
         .then(data => {
             const now = new Date().toLocaleTimeString();
-            document.getElementById('selected-coins').innerHTML = '';
+            const labels = cryptoChart.data.labels;
+
+            if (labels.length === 0 || labels[labels.length - 1] !== now) {
+                labels.push(now);
+                if (labels.length > 20) labels.shift();
+            }
 
             selectedCoins.forEach(coin => {
                 const coinData = data.prices[coin];
@@ -56,8 +61,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     cryptoChart.data.datasets.push(coinDatasets[coin]);
                 }
 
-                // Update data
+                // Update dataset
                 coinDatasets[coin].data.push(latestPrice);
+                if (coinDatasets[coin].data.length > 20) coinDatasets[coin].data.shift();
 
                 // Update coin list
                 const priceElement = document.createElement('li');
@@ -70,9 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
 
-            // Keep the graph labels in sync with data
-            if (cryptoChart.data.labels.length >= 20) cryptoChart.data.labels.shift();
-            cryptoChart.data.labels.push(now);
+            // Update graph
             cryptoChart.update();
         })
         .catch(error => console.error('Error fetching prices:', error));
