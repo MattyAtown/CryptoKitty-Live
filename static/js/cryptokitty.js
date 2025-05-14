@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(response => response.json())
         .then(data => {
             const now = new Date().toLocaleTimeString();
+            document.getElementById('selected-coins').innerHTML = '';
 
             selectedCoins.forEach(coin => {
                 const coinData = data.prices[coin];
@@ -69,8 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
 
-            // Update graph
-            if (cryptoChart.data.labels.length > 20) cryptoChart.data.labels.shift();
+            // Keep the graph labels in sync with data
+            if (cryptoChart.data.labels.length >= 20) cryptoChart.data.labels.shift();
             cryptoChart.data.labels.push(now);
             cryptoChart.update();
         })
@@ -113,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Initial load
-    updateSelectedCoins();
     fetchTopRisers();
     setInterval(updateSelectedCoins, 60000);  // Update every 60 seconds
 });
