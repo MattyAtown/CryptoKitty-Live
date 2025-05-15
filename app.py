@@ -1,13 +1,14 @@
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 import requests
-from collections import defaultdict, deque
 import os
+import time
+from collections import defaultdict, deque
 
 app = Flask(__name__)
 CORS(app)
 
-COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "POL", "LINK", "AERGO", "SUI"]
+COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "LINK", "POL", "AERGO", "SUI"]
 
 PRICE_HISTORY = defaultdict(lambda: {"prices": deque(maxlen=20), "timestamps": deque(maxlen=20), "percentage_changes": deque(maxlen=20)})
 
@@ -47,7 +48,8 @@ def get_prices():
             # Update price history
             history = PRICE_HISTORY[coin]
             history["prices"].append(current_price)
-            history["timestamps"].append(requests.get("https://worldtimeapi.org/api/timezone/etc/utc").json()["utc_datetime"])
+            current_time = time.strftime('%H:%M:%S', time.gmtime())
+            history["timestamps"].append(current_time)
 
             # Calculate percentage change based on the latest two points
             if len(history["prices"]) > 1:
@@ -57,7 +59,7 @@ def get_prices():
             else:
                 history["percentage_changes"].append(0.0)
 
-            # Ensure the full history is included in the response
+            # Build the response data
             prices[coin] = {
                 "price": current_price,
                 "change": round(history["percentage_changes"][-1], 2),
