@@ -29,20 +29,25 @@ COIN_SYMBOLS = {
 
 @app.route('/')
 def index():
+    print("Serving index.html")
     return render_template('index.html')
 
 @app.route('/prices', methods=['POST'])
 def get_prices():
     selected_coins = request.json.get('coins', [])
+    print(f"Selected Coins Received: {selected_coins}")
     prices = {}
 
     for coin in selected_coins:
         symbol = COIN_SYMBOLS.get(coin)
         if not symbol:
+            print(f"Coin not found in COIN_SYMBOLS: {coin}")
             continue
         try:
+            print(f"Fetching price for {coin} ({symbol})")
             response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd")
             data = response.json()
+            print(f"API Response for {coin}: {data}")
             current_price = float(data[symbol]['usd'])
 
             # Update price history
@@ -86,6 +91,7 @@ def top_risers():
         response = requests.get("https://api.coingecko.com/api/v3/coins/markets", params={"vs_currency": "usd", "order": "percent_change_24h_desc", "per_page": 3, "page": 1})
         data = response.json()
         top_risers = [f"{coin['symbol'].upper()}: +{coin['price_change_percentage_24h']}%" for coin in data[:3]]
+        print(f"Top Risers: {top_risers}")
         return jsonify({"top_risers": top_risers})
     except Exception as e:
         print(f"Error fetching top risers: {e}")
@@ -93,4 +99,5 @@ def top_risers():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
+    print(f"Starting server on port {port}")
     app.run(host="0.0.0.0", port=port, debug=True)
