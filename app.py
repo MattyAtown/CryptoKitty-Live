@@ -28,6 +28,10 @@ COIN_SYMBOLS = {
 }
 
 COINBASE_API_KEY = os.getenv("COINBASE_API_KEY")
+
+if not COINBASE_API_KEY:
+    print("\n🚨 WARNING: COINBASE_API_KEY is not set in the environment variables. Please add it to your Render dashboard.\n")
+
 COINBASE_API_URL = "https://api.coinbase.com/v2/prices/{}/spot?currency=USD"
 
 @app.route('/')
@@ -96,7 +100,11 @@ def get_prices():
 @app.route('/top_risers', methods=['GET'])
 def top_risers():
     try:
-        response = requests.get("https://api.coinbase.com/v2/prices?currency=USD", headers={"Authorization": f"Bearer {COINBASE_API_KEY}", "CB-VERSION": "2023-05-15"})
+        headers = {
+            "Authorization": f"Bearer {COINBASE_API_KEY}",
+            "CB-VERSION": "2023-05-15"
+        }
+        response = requests.get("https://api.coinbase.com/v2/prices?currency=USD", headers=headers)
         data = response.json()
         top_risers = [f"{coin['base']}: ${coin['amount']}" for coin in data['data'][:3]]
         print(f"Top Risers: {top_risers}")
