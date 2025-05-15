@@ -5,44 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CryptoKitty Elite Tracker</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon">
-    <script src="/static/js/cryptokitty.js" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="header-container">
-        <img src="/static/images/logo.png" class="logo" alt="CryptoKitty Logo">
-        <h1 class="title">CryptoKitty Elite Tracker</h1>
-        <div class="cryptodog-container">
-            <img src="/static/images/neutral.png" id="cryptodog" alt="CryptoDog">
-            <select id="cryptodog-toggle">
+        <img src="/static/images/logo.png" alt="AiM Logo" class="logo">
+        <div class="title">CryptoKitty Elite Tracker 🐱</div>
+        <div class="crypto-dog-widget">
+            <img id="crypto-dog-img" src="/static/images/neutral.png" alt="CryptoDog">
+            <select class="dropdown" id="crypto-dog-toggle" onchange="toggleCryptoDog()">
                 <option value="off">CryptoDog Off</option>
                 <option value="on">CryptoDog On</option>
             </select>
         </div>
     </div>
 
-    <div class="banner" id="flashing-banner"></div>
+    <div id="flashing-banner" class="flashing-banner">Loading Crypto News...</div>
 
-    <div class="main-container">
+    <div class="container">
         <div class="coin-selection">
-            <h2>Select Coins</h2>
-            <div id="coin-buttons"></div>
-            <button id="update-button">Update</button>
-        </div>
-
-        <div class="selected-coins">
-            <h2>Selected Coins and Updates</h2>
-            <ul id="coin-updates"></ul>
+            <h2>Coin Selection</h2>
+            <ul id="coin-list">
+                <li><input type="checkbox" value="BTC"> BTC (Bitcoin)</li>
+                <li><input type="checkbox" value="ETH"> ETH (Ethereum)</li>
+                <li><input type="checkbox" value="XRP"> XRP (Ripple)</li>
+                <li><input type="checkbox" value="SOL"> SOL (Solana)</li>
+                <li><input type="checkbox" value="ADA"> ADA (Cardano)</li>
+                <li><input type="checkbox" value="DOGE"> DOGE (Dogecoin)</li>
+                <li><input type="checkbox" value="MATIC"> MATIC (Polygon)</li>
+                <li><input type="checkbox" value="DOT"> DOT (Polkadot)</li>
+                <li><input type="checkbox" value="LINK"> LINK (Chainlink)</li>
+                <li><input type="checkbox" value="POL"> POL (Polymath)</li>
+                <li><input type="checkbox" value="AERGO"> AERGO (Aergo)</li>
+                <li><input type="checkbox" value="SUI"> SUI (Sui Network)</li>
+            </ul>
+            <button onclick="updateSelectedCoins()">Update</button>
         </div>
 
         <div class="graph-container">
-            <h2>Live Market Graph</h2>
-            <canvas id="market-graph"></canvas>
+            <h2>Live Graph</h2>
+            <canvas id="crypto-graph"></canvas>
+        </div>
+
+        <div class="coin-updates">
+            <h2>Selected Coins and Updates</h2>
+            <ul id="selected-coins"></ul>
         </div>
     </div>
 
-    <footer>
-        <p>CryptoKitty © 2025 - Real-time Crypto Market Tracker</p>
-    </footer>
+    <script src="/static/js/cryptokitty.js"></script>
 </body>
 </html>
