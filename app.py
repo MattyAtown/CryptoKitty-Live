@@ -28,7 +28,7 @@ COIN_SYMBOLS = {
 }
 
 COINBASE_API_KEY = os.getenv("COINBASE_API_KEY")
-COINBASE_API_URL = "https://api.exchange.coinbase.com/products/{}/ticker"
+COINBASE_API_URL = "https://api.coinbase.com/v2/prices/{}/spot?currency=USD"
 
 @app.route('/')
 def index():
@@ -42,8 +42,8 @@ def get_prices():
     prices = {}
 
     headers = {
-        "User-Agent": "CryptoKitty/1.0",
-        "Authorization": f"Bearer {COINBASE_API_KEY}"
+        "Authorization": f"Bearer {COINBASE_API_KEY}",
+        "CB-VERSION": "2023-05-15"
     }
 
     for coin in selected_coins:
@@ -56,7 +56,7 @@ def get_prices():
             response = requests.get(COINBASE_API_URL.format(symbol), headers=headers)
             data = response.json()
             print(f"API Response for {coin}: {data}")
-            current_price = float(data['price'])
+            current_price = float(data['data']['amount'])
 
             # Update price history
             history = PRICE_HISTORY[coin]
@@ -96,9 +96,9 @@ def get_prices():
 @app.route('/top_risers', methods=['GET'])
 def top_risers():
     try:
-        response = requests.get("https://api.exchange.coinbase.com/products", headers={"User-Agent": "CryptoKitty/1.0"})
+        response = requests.get("https://api.coinbase.com/v2/prices?currency=USD", headers={"Authorization": f"Bearer {COINBASE_API_KEY}", "CB-VERSION": "2023-05-15"})
         data = response.json()
-        top_risers = [f"{product['id']}: +{product['price']}" for product in data[:3]]
+        top_risers = [f"{coin['base']}: ${coin['amount']}" for coin in data['data'][:3]]
         print(f"Top Risers: {top_risers}")
         return jsonify({"top_risers": top_risers})
     except Exception as e:
