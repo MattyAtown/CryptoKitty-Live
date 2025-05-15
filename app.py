@@ -68,10 +68,10 @@ def get_prices():
             current_time = time.strftime('%H:%M:%S', time.gmtime())
             history["timestamps"].append(current_time)
 
-            # Calculate percentage change based on the latest two points
+            # Calculate percentage change based on the initial price
             if len(history["prices"]) > 1:
-                old_price = history["prices"][-2]
-                percentage_change = ((current_price - old_price) / old_price) * 100
+                initial_price = history["prices"][0]
+                percentage_change = ((current_price - initial_price) / initial_price) * 100
                 history["percentage_changes"].append(round(percentage_change, 2))
             else:
                 history["percentage_changes"].append(0.0)
@@ -87,13 +87,13 @@ def get_prices():
 
             # Immediate data return for the first request
             if len(history["prices"]) == 1:
-                print(f"Immediate data for {coin}: {prices[coin]}")
+                print(f"Immediate data for {coin}: {prices[coin]}\n")
 
         except Exception as e:
             print(f"Error fetching price for {coin}: {e}")
 
     # Force a flush to ensure data is sent immediately
-    print("Sending immediate response")
+    print("Sending immediate response\n")
 
     return jsonify({"prices": prices, "status": "success"})
 
@@ -107,13 +107,13 @@ def top_risers():
         response = requests.get("https://api.coinbase.com/v2/prices?currency=USD", headers=headers)
         data = response.json()
         top_risers = [f"{coin['base']}: ${coin['amount']}" for coin in data['data'][:3]]
-        print(f"Top Risers: {top_risers}")
+        print(f"Top Risers: {top_risers}\n")
         return jsonify({"top_risers": top_risers})
     except Exception as e:
-        print(f"Error fetching top risers: {e}")
+        print(f"Error fetching top risers: {e}\n")
         return jsonify({"top_risers": []})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    print(f"Starting server on port {port}")
+    print(f"Starting server on port {port}\n")
     app.run(host="0.0.0.0", port=port, debug=True)
