@@ -67,8 +67,16 @@ def get_prices():
                 "prices": list(history["prices"]),
                 "percentage_changes": list(history["percentage_changes"])
             }
+
+            # Immediate data return for the first request
+            if len(history["prices"]) == 1:
+                print(f"Immediate data for {coin}: {prices[coin]}")
+
         except Exception as e:
             print(f"Error fetching price for {coin}: {e}")
+
+    # Force a flush to ensure data is sent immediately
+    print("Sending immediate response")
 
     return jsonify({"prices": prices, "status": "success"})
 
