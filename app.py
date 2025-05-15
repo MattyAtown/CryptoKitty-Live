@@ -13,19 +13,22 @@ COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "LINK", "POL
 PRICE_HISTORY = defaultdict(lambda: {"prices": deque(maxlen=20), "timestamps": deque(maxlen=20), "percentage_changes": deque(maxlen=20)})
 
 COIN_SYMBOLS = {
-    "BTC": "bitcoin",
-    "ETH": "ethereum",
-    "XRP": "ripple",
-    "SOL": "solana",
-    "ADA": "cardano",
-    "DOGE": "dogecoin",
-    "MATIC": "polygon",
-    "DOT": "polkadot",
-    "POL": "polymath",
-    "LINK": "chainlink",
-    "AERGO": "aergo",
-    "SUI": "sui"
+    "BTC": "BTC-USD",
+    "ETH": "ETH-USD",
+    "XRP": "XRP-USD",
+    "SOL": "SOL-USD",
+    "ADA": "ADA-USD",
+    "DOGE": "DOGE-USD",
+    "MATIC": "MATIC-USD",
+    "DOT": "DOT-USD",
+    "POL": "POL-USD",
+    "LINK": "LINK-USD",
+    "AERGO": "AERGO-USD",
+    "SUI": "SUI-USD"
 }
+
+COINBASE_API_KEY = os.getenv("COINBASE_API_KEY")
+COINBASE_API_URL = "https://api.exchange.coinbase.com/products/{}/ticker"
 
 @app.route('/')
 def index():
@@ -38,6 +41,11 @@ def get_prices():
     print(f"Selected Coins Received: {selected_coins}")
     prices = {}
 
+    headers = {
+        "User-Agent": "CryptoKitty/1.0",
+        "Authorization": f"Bearer {COINBASE_API_KEY}"
+    }
+
     for coin in selected_coins:
         symbol = COIN_SYMBOLS.get(coin)
         if not symbol:
@@ -45,10 +53,10 @@ def get_prices():
             continue
         try:
             print(f"Fetching price for {coin} ({symbol})")
-            response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd")
+            response = requests.get(COINBASE_API_URL.format(symbol), headers=headers)
             data = response.json()
             print(f"API Response for {coin}: {data}")
-            current_price = float(data[symbol]['usd'])
+            current_price = float(data['price'])
 
             # Update price history
             history = PRICE_HISTORY[coin]
@@ -88,9 +96,9 @@ def get_prices():
 @app.route('/top_risers', methods=['GET'])
 def top_risers():
     try:
-        response = requests.get("https://api.coingecko.com/api/v3/coins/markets", params={"vs_currency": "usd", "order": "percent_change_24h_desc", "per_page": 3, "page": 1})
+        response = requests.get("https://api.exchange.coinbase.com/products", headers={"User-Agent": "CryptoKitty/1.0"})
         data = response.json()
-        top_risers = [f"{coin['symbol'].upper()}: +{coin['price_change_percentage_24h']}%" for coin in data[:3]]
+        top_risers = [f"{product['id']}: +{product['price']}" for product in data[:3]]
         print(f"Top Risers: {top_risers}")
         return jsonify({"top_risers": top_risers})
     except Exception as e:
