@@ -6,7 +6,7 @@ import time
 from collections import defaultdict, deque
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "LINK", "POL", "AERGO", "SUI"]
 
@@ -70,7 +70,7 @@ def get_prices():
         except Exception as e:
             print(f"Error fetching price for {coin}: {e}")
 
-    return jsonify({"prices": prices})
+    return jsonify({"prices": prices, "status": "success"})
 
 @app.route('/top_risers', methods=['GET'])
 def top_risers():
