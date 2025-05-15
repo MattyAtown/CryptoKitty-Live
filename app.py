@@ -68,10 +68,10 @@ def get_prices():
             current_time = time.strftime('%H:%M:%S', time.gmtime())
             history["timestamps"].append(current_time)
 
-            # Calculate percentage change based on the initial price
+            # Calculate percentage change based on the last known price
             if len(history["prices"]) > 1:
-                initial_price = history["prices"][0]
-                percentage_change = ((current_price - initial_price) / initial_price) * 100
+                previous_price = history["prices"][-2]
+                percentage_change = ((current_price - previous_price) / previous_price) * 100
                 history["percentage_changes"].append(round(percentage_change, 2))
             else:
                 history["percentage_changes"].append(0.0)
