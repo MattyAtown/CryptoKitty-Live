@@ -52,35 +52,39 @@ COIN_LORE_IDS = {
 
 def fetch_price(coin):
     symbol = COIN_SYMBOLS.get(coin.lower())
+    print(f"🔍 Fetching price for {coin} ({symbol})...")
     if not symbol:
-        print(f"Coin not found in COIN_SYMBOLS: {coin}")
+        print(f"⚠️ Coin not found in COIN_SYMBOLS: {coin}")
         return None
 
     for url in API_URLS:
         try:
             if "coingecko" in url:
                 response = requests.get(url.format(symbol), timeout=5)
+                print(f"🟢 CoinGecko Response ({symbol}):", response.json())
                 data = response.json()
                 return float(data[symbol]['usd'])
 
             elif "coincap" in url:
                 response = requests.get(url.format(symbol), timeout=5)
+                print(f"🟢 CoinCap Response ({symbol}):", response.json())
                 data = response.json()
                 return float(data['data']['priceUsd'])
 
             elif "coinlore" in url:
                 coin_id = COIN_LORE_IDS.get(symbol)
                 if not coin_id:
-                    print(f"No CoinLore ID for {symbol}")
+                    print(f"⚠️ No CoinLore ID for {symbol}")
                     continue
                 response = requests.get(url.format(coin_id), timeout=5)
+                print(f"🟢 CoinLore Response ({symbol}):", response.json())
                 data = response.json()[0]
                 return float(data['price_usd'])
 
         except Exception as e:
-            print(f"Error fetching price from {url} for {coin}: {e}")
+            print(f"🔴 Error fetching price from {url} for {coin}: {e}")
 
-    print(f"Failed to fetch price for {coin} from all sources.")
+    print(f"🔴 Failed to fetch price for {coin} from all sources.")
     return None
 
 @app.route('/')
