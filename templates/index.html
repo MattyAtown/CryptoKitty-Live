@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CryptoKitty Elite</title>
+    <title>CryptoKitty Elite Tracker</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/static/js/cryptokitty.js" defer></script>
 </head>
 <body>
     <header>
-        <h1>CryptoKitty Elite</h1>
+        <img src="/static/images/logo.png" alt="AiM Logo" id="aim-logo">
+        <h1>CryptoKitty Elite Tracker</h1>
+        <div id="crypto-dog-container">
+            <label>
+                <input type="checkbox" id="crypto-dog-toggle">
+                Activate CryptoDog
+            </label>
+            <img id="crypto-dog-img" src="/static/images/neutral.png" alt="CryptoDog">
+        </div>
         <div id="flashing-banner">Loading Crypto News...</div>
     </header>
 
@@ -56,15 +64,6 @@
     <section id="live-graph">
         <h2>Price Movement</h2>
         <canvas id="crypto-graph" width="1000" height="500"></canvas>
-    </section>
-
-    <section id="crypto-dog">
-        <h2>CryptoDog</h2>
-        <label>
-            <input type="checkbox" id="crypto-dog-toggle">
-            Activate CryptoDog
-        </label>
-        <img id="crypto-dog-img" src="/static/images/neutral.png" alt="CryptoDog" style="display:none;">
     </section>
 </body>
 </html>
