@@ -1,28 +1,63 @@
 body {
     background-color: #000;
     color: #fff;
-    font-family: Arial, sans-serif;
+    font-family: 'Orbitron', sans-serif;
     text-align: center;
     padding: 20px;
 }
 
 header {
+    background-color: #111;
+    padding: 20px;
+    border-radius: 10px;
     margin-bottom: 20px;
+    color: #0ff;
 }
 
-ul {
-    list-style: none;
-    padding: 0;
-    margin: 10px 0;
+#flashing-banner {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 1.2em;
+    background-color: #222;
+    border-radius: 5px;
+    color: #ff0;
+    animation: flash 1s infinite alternate;
+}
+
+@keyframes flash {
+    0% { color: #ff0; }
+    100% { color: #f00; }
+}
+
+#coin-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.coin-options label {
+    background-color: #222;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.coin-options label:hover {
+    background-color: #444;
 }
 
 canvas {
     background-color: #111;
     border-radius: 10px;
-    margin-top: 20px;
+    margin: 20px auto;
 }
 
 #crypto-dog-img {
     margin-top: 20px;
-    width: 200px;
+    width: 250px;
+    display: none;
 }
