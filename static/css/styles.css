@@ -39,9 +39,9 @@ body {
 .crypto-dog-widget {
     width: 100px;
     text-align: center;
-    position: relative;
-    margin-left: auto;
-    margin-right: 40px;
+    position: absolute;
+    right: 40px;
+    top: 15px;
 }
 
 .crypto-dog-widget img {
