@@ -11,25 +11,16 @@ document.addEventListener("DOMContentLoaded", () => {
             responsive: true,
             scales: {
                 x: { title: { display: true, text: 'Time' } },
-                y: { title: { display: true, text: 'Price (USD)' } }
+                y: { title: { display: true, text: 'Percentage Change (%)' }, min: -100, max: 100 }
             }
         }
     });
 
     const coinDatasets = {};
     let cryptoDogActive = false;
-    const sounds = {
-        excited: new Audio('/static/sounds/bark.mp3'),
-        happy: new Audio('/static/sounds/happy.mp3'),
-        angry: new Audio('/static/sounds/growl.mp3'),
-        neutral: new Audio('/static/sounds/sniff.mp3')
-    };
 
     function updateSelectedCoins() {
         const selectedCoins = [];
-        const coinListElement = document.getElementById('selected-coins');
-        coinListElement.innerHTML = '';
-
         document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
             selectedCoins.push(checkbox.value);
         });
@@ -48,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (labels.length === 0 || labels[labels.length - 1] !== now) {
                 labels.push(now);
-                if (labels.length > 20) labels.shift();
+                if (labels.length > 12) labels.shift();
             }
 
             selectedCoins.forEach(coin => {
@@ -56,7 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!coinData) return;
 
                 const latestPrice = coinData.price;
-                const change = coinData.change;
+                const latestChange = coinData.change;
+                const percentageChanges = coinData.percentage_changes;
 
                 // Create or update dataset
                 if (!coinDatasets[coin]) {
@@ -72,17 +64,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 // Update dataset
-                coinDatasets[coin].data.push(latestPrice);
-                if (coinDatasets[coin].data.length > 20) coinDatasets[coin].data.shift();
+                coinDatasets[coin].data.push(latestChange);
+                if (coinDatasets[coin].data.length > 12) coinDatasets[coin].data.shift();
 
                 // Update coin list
-                const priceElement = document.createElement('li');
-                priceElement.textContent = `${coin}: $${latestPrice} (${change}%)`;
-                coinListElement.appendChild(priceElement);
+                const coinElement = document.getElementById(`coin-${coin}`);
+                coinElement.textContent = `${coin}: $${latestPrice} (${latestChange}%)`;
+                coinElement.style.color = latestChange < 0 ? 'red' : 'green';
 
-                // Handle CryptoDog logic for BTC
+                // Handle CryptoDog
                 if (coin === 'BTC' && cryptoDogActive) {
-                    updateCryptoDog(coinData.percentage_changes || [change]);
+                    updateCryptoDog(percentageChanges);
                 }
             });
 
@@ -92,58 +84,9 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch(error => console.error('Error fetching prices:', error));
     }
 
-    function updateCryptoDog(percentageChanges) {
-        const dogImg = document.getElementById('crypto-dog-img');
-        const changeSum = percentageChanges.slice(-5).reduce((acc, val) => acc + val, 0);
-
-        if (percentageChanges.slice(-3).every(p => p > 0)) {
-            dogImg.src = '/static/images/excited.png';
-            playSound('excited');
-            updateBanner("Market is getting busy");
-        } else if (changeSum > 0) {
-            dogImg.src = '/static/images/happy.png';
-            playSound('happy');
-            updateBanner("Good Market");
-        } else if (changeSum < 0) {
-            dogImg.src = '/static/images/angry.png';
-            playSound('angry');
-            updateBanner("Market Downturn");
-        } else {
-            dogImg.src = '/static/images/neutral.png';
-            playSound('neutral');
-            updateBanner("Market Stable");
-        }
-    }
-
-    function playSound(type) {
-        if (sounds[type]) {
-            sounds[type].play();
-        }
-    }
-
-    function updateBanner(message) {
-        const banner = document.getElementById('flashing-banner');
-        banner.textContent = message;
-        setTimeout(fetchTopRisers, 15000);  // Switch back to top risers every 15 seconds
-    }
-
-    function fetchTopRisers() {
-        fetch('/top_risers')
-            .then(response => response.json())
-            .then(data => {
-                const banner = document.getElementById('flashing-banner');
-                banner.textContent = data.top_risers.join(' | ');
-                setTimeout(fetchNews, 15000);  // Switch to news after 15 seconds
-            })
-            .catch(error => console.error('Error fetching top risers:', error));
-    }
-
-    // CryptoDog Toggle
+    // Set up event listeners
+    document.getElementById('update-prices-btn').addEventListener('click', updateSelectedCoins);
     document.getElementById('crypto-dog-toggle').addEventListener('change', (event) => {
         cryptoDogActive = event.target.checked;
     });
-
-    // Initial load
-    fetchTopRisers();
-    setInterval(updateSelectedCoins, 60000);  // Update every 60 seconds
 });
