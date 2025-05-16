@@ -40,6 +40,8 @@ body {
     width: 100px;
     text-align: center;
     position: relative;
+    margin-left: auto;
+    margin-right: 20px;
 }
 
 .crypto-dog-widget img {
