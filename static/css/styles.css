@@ -28,6 +28,7 @@ header {
 h1 {
     flex-grow: 1;
     margin: 0;
+    color: #ff0099;
 }
 
 #crypto-dog-container {
@@ -47,11 +48,12 @@ h1 {
     background-color: #222;
     padding: 15px;
     margin-bottom: 20px;
-    color: #ff0;
+    color: #0ff;
     font-size: 1.2em;
     animation: flash 1s infinite alternate;
     border-radius: 5px;
     text-align: center;
+    border: 2px solid #ff0099;
 }
 
 @keyframes flash {
@@ -72,18 +74,7 @@ h1 {
     border-radius: 10px;
     padding: 20px;
     min-width: 300px;
-}
-
-#coin-selection {
-    flex: 1;
-}
-
-#updates-results {
-    flex: 1;
-}
-
-#live-graph {
-    flex: 2;
+    border: 2px solid #ff0099;
 }
 
 canvas {
@@ -91,6 +82,7 @@ canvas {
     border-radius: 10px;
     margin: 20px auto;
     max-width: 100%;
+    border: 2px solid #ff0099;
 }
 
 button {
@@ -102,16 +94,17 @@ button {
     margin: 10px 0;
     cursor: pointer;
     transition: background-color 0.3s;
+    border: 2px solid #ff0099;
 }
 
 button:hover {
     background-color: #666;
 }
 
-#coin-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    max-height: 400px;
-    overflow-y: auto;
+#top-risers-fallers {
+    background-color: #111;
+    border-radius: 10px;
+    padding: 20px;
+    border: 2px solid #ff0099;
+    margin-top: 20px;
 }
