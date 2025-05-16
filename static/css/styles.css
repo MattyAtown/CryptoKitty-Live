@@ -9,39 +9,38 @@ body {
 
 /* Header */
 header {
-    background-color: #111;
-    padding: 20px 40px;
-    border-radius: 15px;
-    margin-bottom: 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    position: relative;
+    justify-content: space-between;
+    background-color: #111;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
     border: 2px solid #0ff;
     box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
 }
 
 #aim-logo {
     width: 80px;
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-#crypto-dog-container {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    text-align: center;
+    margin-left: 20px;
 }
 
 h1 {
+    flex-grow: 1;
     color: #ff0099;
-    font-size: 2.5em;
+    font-size: 2em;
     text-shadow: 0 0 10px #ff0099, 0 0 20px #ff0099, 0 0 40px #ff0099;
     margin: 0;
+}
+
+#crypto-dog-container {
+    margin-right: 20px;
+    text-align: center;
+}
+
+#crypto-dog-img {
+    width: 80px;
+    margin-top: 10px;
 }
 
 /* Flashing Banner */
@@ -66,12 +65,40 @@ h1 {
     margin: auto;
 }
 
-/* Bottom Section */
-#bottom-section {
-    margin-top: 20px;
+#coin-selection, #updates-results, #live-graph {
     background-color: #111;
-    padding: 20px;
     border-radius: 15px;
+    padding: 20px;
     border: 2px solid #0ff;
     box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
+    min-height: 300px;
+}
+
+/* Bottom Section */
+#bottom-section {
+    background-color: #111;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
+}
+
+/* Button Styles */
+button {
+    background-color: #444;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 10px 0;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
+}
+
+button:hover {
+    background-color: #555;
+    box-shadow: 0 0 20px #ff0099, 0 0 40px #ff0099, 0 0 60px #ff0099;
 }
