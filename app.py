@@ -35,6 +35,8 @@ if not COINBASE_API_KEY:
 COINBASE_API_URL = "https://api.coinbase.com/v2/prices/{}/spot?currency=USD"
 COINGECKO_API_URL = "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies=usd"
 
+NEWS_API_URL = "https://api.coingecko.com/api/v3/news"
+
 @app.route('/')
 def index():
     print("Serving index.html")
@@ -113,6 +115,18 @@ def top_risers():
     except Exception as e:
         print(f"Error fetching top risers: {e}\n")
         return jsonify({"top_risers": []})
+
+@app.route('/news', methods=['GET'])
+def get_news():
+    try:
+        response = requests.get("https://api.coingecko.com/api/v3/status_updates")
+        data = response.json()
+        news_items = [item['description'] for item in data['status_updates'][:5]]
+        print(f"Latest News: {news_items}\n")
+        return jsonify({"news": news_items})
+    except Exception as e:
+        print(f"Error fetching news: {e}\n")
+        return jsonify({"news": []})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
