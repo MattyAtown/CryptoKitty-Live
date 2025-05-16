@@ -1,11 +1,15 @@
 services:
   - type: web
-    name: cryptodog-clock
+    name: cryptokitty-live
     env: python
-    buildCommand: ""
-    startCommand: python app.py
+    region: singapore
     plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
     envVars:
       - key: FLASK_ENV
         value: production
-
+      - key: PORT
+        value: 5000
+    healthCheckPath: "/"
+    autoDeploy: true
