@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
             responsive: true,
             scales: {
                 x: { title: { display: true, text: 'Time' } },
-                y: { title: { display: true, text: 'Percentage Change (%)' }, min: -20, max: 20, ticks: { stepSize: 1 } }
+                y: { title: { display: true, text: 'Price (USD)' } }
             }
         }
     });
@@ -55,7 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const coinData = data.prices[coin];
                 if (!coinData) return;
 
-                const latestChange = coinData.percentage_changes.slice(-1)[0];
+                const latestPrice = coinData.price;
+                const change = coinData.change;
 
                 // Create or update dataset
                 if (!coinDatasets[coin]) {
@@ -71,17 +72,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 // Update dataset
-                coinDatasets[coin].data.push(latestChange);
+                coinDatasets[coin].data.push(latestPrice);
                 if (coinDatasets[coin].data.length > 20) coinDatasets[coin].data.shift();
 
                 // Update coin list
                 const priceElement = document.createElement('li');
-                priceElement.textContent = `${coin}: ${latestChange}%`;
+                priceElement.textContent = `${coin}: $${latestPrice} (${change}%)`;
                 coinListElement.appendChild(priceElement);
 
                 // Handle CryptoDog logic for BTC
                 if (coin === 'BTC' && cryptoDogActive) {
-                    updateCryptoDog(coinData.percentage_changes);
+                    updateCryptoDog(coinData.percentage_changes || [change]);
                 }
             });
 
@@ -137,15 +138,10 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch(error => console.error('Error fetching top risers:', error));
     }
 
-    function fetchNews() {
-        fetch('/news')
-            .then(response => response.json())
-            .then(data => {
-                const banner = document.getElementById('flashing-banner');
-                banner.textContent = data.news.join(' | ');
-            })
-            .catch(error => console.error('Error fetching news:', error));
-    }
+    // CryptoDog Toggle
+    document.getElementById('crypto-dog-toggle').addEventListener('change', (event) => {
+        cryptoDogActive = event.target.checked;
+    });
 
     // Initial load
     fetchTopRisers();
