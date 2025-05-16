@@ -1,3 +1,4 @@
+/* Global Styles */
 body {
     background-color: #000;
     color: #fff;
@@ -6,105 +7,71 @@ body {
     text-align: center;
 }
 
+/* Header */
 header {
     background-color: #111;
-    padding: 20px;
-    border-radius: 10px;
+    padding: 20px 40px;
+    border-radius: 15px;
     margin-bottom: 20px;
-    color: #0ff;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
 }
 
 #aim-logo {
-    width: 80px;
+    width: 100px;
     position: absolute;
     left: 20px;
-    top: 20px;
-}
-
-h1 {
-    flex-grow: 1;
-    margin: 0;
-    color: #ff0099;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 #crypto-dog-container {
     position: absolute;
     right: 20px;
-    top: 20px;
+    top: 50%;
+    transform: translateY(-50%);
     text-align: center;
 }
 
-#crypto-dog-img {
-    width: 80px;
-    margin-top: 10px;
+h1 {
+    color: #ff0099;
+    font-size: 2.5em;
+    text-shadow: 0 0 10px #ff0099, 0 0 20px #ff0099, 0 0 40px #ff0099;
+    margin: 0;
 }
 
+/* Flashing Banner */
 #flashing-banner {
-    width: 100%;
-    background-color: #222;
+    background-color: #111;
     padding: 15px;
     margin-bottom: 20px;
     color: #0ff;
-    font-size: 1.2em;
-    animation: flash 1s infinite alternate;
+    font-size: 1.5em;
+    animation: glow 1s infinite alternate;
     border-radius: 5px;
-    text-align: center;
-    border: 2px solid #ff0099;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
 }
 
-@keyframes flash {
-    0% { color: #ff0; }
-    100% { color: #f00; }
-}
-
+/* Main Content */
 #main-content {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
     gap: 20px;
     max-width: 1600px;
     margin: auto;
 }
 
-#coin-selection, #updates-results, #live-graph {
-    flex-grow: 1;
-    background-color: #111;
-    border-radius: 10px;
-    padding: 20px;
-    min-width: 300px;
-    border: 2px solid #ff0099;
-}
-
-canvas {
-    background-color: #111;
-    border-radius: 10px;
-    margin: 20px auto;
-    max-width: 100%;
-    border: 2px solid #ff0099;
-}
-
-button {
-    background-color: #444;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    margin: 10px 0;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    border: 2px solid #ff0099;
-}
-
-button:hover {
-    background-color: #666;
-}
-
-#top-risers-fallers {
-    background-color: #111;
-    border-radius: 10px;
-    padding: 20px;
-    border: 2px solid #ff0099;
+/* Bottom Section */
+#bottom-section {
     margin-top: 20px;
+    background-color: #111;
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
 }
