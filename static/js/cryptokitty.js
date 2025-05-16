@@ -1,5 +1,3 @@
-// CryptoKitty Main Logic
-
 document.addEventListener("DOMContentLoaded", () => {
     console.log("📈 CryptoKitty Loaded");
 
@@ -17,9 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
-
-    const coinDatasets = {};
-    let cryptoDogActive = false;
 
     function updateSelectedCoins() {
         const selectedCoins = [];
@@ -52,50 +47,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 const coinData = data.prices[coin];
                 if (!coinData) return;
 
-                const latestPrice = coinData.price;
-                const latestChange = coinData.change;
-                const percentageChanges = coinData.percentage_changes || [];
+                // Add to list
+                const coinElement = document.createElement('li');
+                coinElement.textContent = `${coin}: $${coinData.price} (${coinData.change}%)`;
+                coinElement.style.color = coinData.change < 0 ? 'red' : 'green';
+                coinListElement.appendChild(coinElement);
 
-                // Create or update dataset
-                if (!coinDatasets[coin]) {
-                    coinDatasets[coin] = {
+                // Update graph
+                if (!cryptoChart.data.datasets.some(ds => ds.label === coin)) {
+                    cryptoChart.data.datasets.push({
                         label: coin,
                         data: [],
                         borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
                         borderWidth: 2,
                         fill: false,
                         tension: 0.3
-                    };
-                    cryptoChart.data.datasets.push(coinDatasets[coin]);
+                    });
                 }
 
-                // Update dataset
-                coinDatasets[coin].data.push(latestChange);
-                if (coinDatasets[coin].data.length > 12) coinDatasets[coin].data.shift();
-
-                // Update coin list
-                const coinElement = document.createElement('li');
-                const status = latestChange > 0 ? "Rising" : latestChange < 0 ? "Falling" : "Stable";
-                coinElement.textContent = `${coin}: $${latestPrice} (${latestChange}%) - ${status}`;
-                coinElement.style.color = latestChange < 0 ? 'red' : 'green';
-                coinListElement.appendChild(coinElement);
+                const dataset = cryptoChart.data.datasets.find(ds => ds.label === coin);
+                dataset.data.push(coinData.change);
+                if (dataset.data.length > 12) dataset.data.shift();
             });
 
-            // Update graph
             cryptoChart.update();
         })
         .catch(error => console.error('Error fetching prices:', error));
     }
 
-    function selectAllCoins() {
-        document.querySelectorAll('#coin-list input[type="checkbox"]').forEach(checkbox => checkbox.checked = true);
-    }
-
-    function deselectAllCoins() {
-        document.querySelectorAll('#coin-list input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
-    }
-
     document.getElementById('update-prices-btn').addEventListener('click', updateSelectedCoins);
-    document.getElementById('select-all').addEventListener('click', selectAllCoins);
-    document.getElementById('deselect-all').addEventListener('click', deselectAllCoins);
 });
