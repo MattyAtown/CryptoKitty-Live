@@ -152,7 +152,7 @@ ul {
 
 .flashing-banner {
     position: fixed;
-    top: 120px;
+    top: 160px;
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(255, 0, 255, 0.9);
