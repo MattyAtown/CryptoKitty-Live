@@ -11,16 +11,18 @@ body {
 .header-container {
     display: flex;
     align-items: center;
-    padding: 10px 30px;
-    background-color: rgba(0, 0, 0, 0.9);
-    position: relative;
-    box-shadow: 0 0 20px #00ffff;
+    padding: 15px 40px;
+    background-color: rgba(0, 0, 0, 0.95);
+    position: fixed;
+    top: 0;
+    width: 100%;
     z-index: 1000;
-    height: 150px;
+    box-shadow: 0 0 30px #00ffff;
+    height: 120px;
 }
 
 .logo {
-    width: 120px;
+    width: 100px;
     margin-right: 20px;
 }
 
@@ -29,23 +31,19 @@ body {
     text-align: left;
     font-size: 36px;
     color: #00ffff;
-    text-transform: none;
     font-weight: 700;
     letter-spacing: 2px;
     text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #00ffff;
 }
 
 .crypto-dog-widget {
-    width: 120px;
+    width: 100px;
     text-align: center;
-    position: absolute;
-    top: 15px;
-    right: 30px;
-    z-index: 1100;
+    position: relative;
 }
 
 .crypto-dog-widget img {
-    width: 120px;
+    width: 100px;
     cursor: pointer;
     margin-bottom: 5px;
 }
@@ -72,7 +70,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    padding: 20px;
+    padding: 150px 20px 20px 20px;
 }
 
 .coin-selection {
@@ -151,10 +149,10 @@ ul {
 
 .flashing-banner {
     position: fixed;
-    top: 150px;
+    top: 120px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(255, 0, 255, 0.8);
+    background-color: rgba(255, 0, 255, 0.9);
     color: #ffffff;
     padding: 15px 20px;
     text-align: center;
@@ -170,6 +168,6 @@ ul {
 }
 
 @keyframes flash {
-    0% { background-color: rgba(255, 0, 255, 0.8); color: #ffffff; }
-    100% { background-color: rgba(0, 255, 255, 0.8); color: #000000; }
+    0% { background-color: rgba(255, 0, 255, 0.9); color: #ffffff; }
+    100% { background-color: rgba(0, 255, 255, 0.9); color: #000000; }
 }
