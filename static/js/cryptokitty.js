@@ -11,22 +11,25 @@ document.addEventListener("DOMContentLoaded", () => {
             responsive: true,
             scales: {
                 x: { title: { display: true, text: 'Time' } },
-                y: {
-                    title: { display: true, text: 'Percentage Change (%)' },
-                    min: -20,
-                    max: 20,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
+                y: { title: { display: true, text: 'Percentage Change (%)' }, min: -20, max: 20, ticks: { stepSize: 1 } }
             }
         }
     });
 
     const coinDatasets = {};
+    let cryptoDogActive = false;
+    const sounds = {
+        excited: new Audio('/static/sounds/bark.mp3'),
+        happy: new Audio('/static/sounds/happy.mp3'),
+        angry: new Audio('/static/sounds/growl.mp3'),
+        neutral: new Audio('/static/sounds/sniff.mp3')
+    };
 
     function updateSelectedCoins() {
         const selectedCoins = [];
+        const coinListElement = document.getElementById('selected-coins');
+        coinListElement.innerHTML = '';
+
         document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
             selectedCoins.push(checkbox.value);
         });
@@ -74,12 +77,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Update coin list
                 const priceElement = document.createElement('li');
                 priceElement.textContent = `${coin}: ${latestChange}%`;
-                const coinList = document.getElementById('selected-coins');
-                coinList.innerHTML = '';
-                coinList.appendChild(priceElement);
+                coinListElement.appendChild(priceElement);
 
                 // Handle CryptoDog logic for BTC
-                if (coin === 'BTC') {
+                if (coin === 'BTC' && cryptoDogActive) {
                     updateCryptoDog(coinData.percentage_changes);
                 }
             });
@@ -96,16 +97,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (percentageChanges.slice(-3).every(p => p > 0)) {
             dogImg.src = '/static/images/excited.png';
+            playSound('excited');
             updateBanner("Market is getting busy");
         } else if (changeSum > 0) {
             dogImg.src = '/static/images/happy.png';
+            playSound('happy');
             updateBanner("Good Market");
         } else if (changeSum < 0) {
             dogImg.src = '/static/images/angry.png';
+            playSound('angry');
             updateBanner("Market Downturn");
         } else {
             dogImg.src = '/static/images/neutral.png';
+            playSound('neutral');
             updateBanner("Market Stable");
+        }
+    }
+
+    function playSound(type) {
+        if (sounds[type]) {
+            sounds[type].play();
         }
     }
 
@@ -121,8 +132,19 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 const banner = document.getElementById('flashing-banner');
                 banner.textContent = data.top_risers.join(' | ');
+                setTimeout(fetchNews, 15000);  // Switch to news after 15 seconds
             })
             .catch(error => console.error('Error fetching top risers:', error));
+    }
+
+    function fetchNews() {
+        fetch('/news')
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('flashing-banner');
+                banner.textContent = data.news.join(' | ');
+            })
+            .catch(error => console.error('Error fetching news:', error));
     }
 
     // Initial load
