@@ -18,9 +18,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const coinDatasets = {};
     let cryptoDogActive = false;
+    const sounds = {
+        excited: new Audio('/static/sounds/excited.mp3'),
+        happy: new Audio('/static/sounds/happy.mp3'),
+        angry: new Audio('/static/sounds/angry.mp3'),
+        neutral: new Audio('/static/sounds/neutral.mp3')
+    };
 
     function updateSelectedCoins() {
         const selectedCoins = [];
+        const coinListElement = document.getElementById('selected-coins');
+        coinListElement.innerHTML = '';
+
         document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
             selectedCoins.push(checkbox.value);
         });
@@ -68,9 +77,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (coinDatasets[coin].data.length > 12) coinDatasets[coin].data.shift();
 
                 // Update coin list
-                const coinElement = document.getElementById(`coin-${coin}`);
-                coinElement.textContent = `${coin}: $${latestPrice} (${latestChange}%)`;
+                const coinElement = document.createElement('li');
+                const status = latestChange > 0 ? "Rising" : latestChange < 0 ? "Falling" : "Stable";
+                coinElement.textContent = `${coin}: $${latestPrice} (${latestChange}%) - ${status}`;
                 coinElement.style.color = latestChange < 0 ? 'red' : 'green';
+                coinListElement.appendChild(coinElement);
 
                 // Handle CryptoDog
                 if (coin === 'BTC' && cryptoDogActive) {
@@ -84,9 +95,75 @@ document.addEventListener("DOMContentLoaded", () => {
         .catch(error => console.error('Error fetching prices:', error));
     }
 
-    // Set up event listeners
-    document.getElementById('update-prices-btn').addEventListener('click', updateSelectedCoins);
-    document.getElementById('crypto-dog-toggle').addEventListener('change', (event) => {
-        cryptoDogActive = event.target.checked;
+    function updateCryptoDog(percentageChanges) {
+        const dogImg = document.getElementById('crypto-dog-img');
+        const changeSum = percentageChanges.slice(-5).reduce((acc, val) => acc + val, 0);
+
+        if (percentageChanges.slice(-3).every(p => p > 0)) {
+            dogImg.src = '/static/images/excited.png';
+            playSound('excited');
+            updateBanner("Market is getting busy");
+        } else if (changeSum > 0) {
+            dogImg.src = '/static/images/happy.png';
+            playSound('happy');
+            updateBanner("Good Market");
+        } else if (changeSum < 0) {
+            dogImg.src = '/static/images/angry.png';
+            playSound('angry');
+            updateBanner("Market Downturn");
+        } else {
+            dogImg.src = '/static/images/neutral.png';
+            playSound('neutral');
+            updateBanner("Market Stable");
+        }
+
+        dogImg.style.display = "block";
+    }
+
+    function playSound(type) {
+        if (sounds[type]) {
+            sounds[type].play();
+        }
+    }
+
+    function updateBanner(message) {
+        const banner = document.getElementById('flashing-banner');
+        banner.textContent = message;
+        setTimeout(fetchTopRisers, 15000);  // Switch back to top risers every 15 seconds
+    }
+
+    function fetchTopRisers() {
+        fetch('/top_risers')
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('flashing-banner');
+                banner.textContent = data.top_risers.join(' | ');
+                setTimeout(fetchNews, 15000);  // Switch to news after 15 seconds
+            })
+            .catch(error => console.error('Error fetching top risers:', error));
+    }
+
+    function fetchNews() {
+        fetch('/news')
+            .then(response => response.json())
+            .then(data => {
+                const banner = document.getElementById('flashing-banner');
+                banner.textContent = data.news.join(' | ');
+                setTimeout(fetchTopRisers, 15000);  // Switch back to top risers after 15 seconds
+            })
+            .catch(error => console.error('Error fetching news:', error));
+    }
+
+    // Select All / Deselect All
+    document.getElementById('select-all').addEventListener('click', () => {
+        document.querySelectorAll('#coin-list input[type="checkbox"]').forEach(checkbox => checkbox.checked = true);
     });
+
+    document.getElementById('deselect-all').addEventListener('click', () => {
+        document.querySelectorAll('#coin-list input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+    });
+
+    // Initial load
+    fetchTopRisers();
+    setInterval(updateSelectedCoins, 60000);  // Update every 60 seconds
 });
