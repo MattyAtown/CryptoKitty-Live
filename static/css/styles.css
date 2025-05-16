@@ -24,11 +24,6 @@ header {
     animation: flash 1s infinite alternate;
 }
 
-@keyframes flash {
-    0% { color: #ff0; }
-    100% { color: #f00; }
-}
-
 .coin-options label {
     background-color: #222;
     padding: 10px;
