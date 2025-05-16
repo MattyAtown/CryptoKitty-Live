@@ -21,9 +21,9 @@ def get_prices():
     selected_coins = request.json.get('coins', [])
     print(f"📊 Coins Requested: {selected_coins}")
 
+    # Simulate real data
     prices = {}
     for coin in selected_coins:
-        # Simulate real data
         current_price = round(random.uniform(1, 50000), 2)
         percentage_change = round(random.uniform(-100, 100), 2)
         timestamps = [time.strftime('%H:%M', time.gmtime(time.time() - 300 * i)) for i in range(12)][::-1]
@@ -36,17 +36,6 @@ def get_prices():
         }
 
     return jsonify({"prices": prices, "status": "success"})
-
-@app.route('/top_risers', methods=['GET'])
-def top_risers():
-    risers = random.sample(TOP_25_COINS, 3)
-    riser_messages = [f"{coin} +{random.randint(5, 25)}%" for coin in risers]
-    return jsonify({"top_risers": riser_messages})
-
-@app.route('/news', methods=['GET'])
-def get_news():
-    headlines = [f"Crypto Update: {i}" for i in range(1, 6)]
-    return jsonify({"news": headlines})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
