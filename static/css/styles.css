@@ -2,8 +2,8 @@ body {
     background-color: #000;
     color: #fff;
     font-family: 'Orbitron', sans-serif;
-    text-align: center;
     padding: 20px;
+    text-align: center;
 }
 
 header {
@@ -12,39 +12,78 @@ header {
     border-radius: 10px;
     margin-bottom: 20px;
     color: #0ff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+#aim-logo {
+    width: 80px;
+    position: absolute;
+    left: 20px;
+    top: 20px;
+}
+
+h1 {
+    flex-grow: 1;
+    margin: 0;
+}
+
+#crypto-dog-container {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    text-align: center;
+}
+
+#crypto-dog-img {
+    width: 80px;
+    margin-top: 10px;
 }
 
 #flashing-banner {
-    margin-top: 10px;
+    margin-top: 20px;
     padding: 10px;
-    font-size: 1.2em;
     background-color: #222;
     border-radius: 5px;
     color: #ff0;
+    font-size: 1.2em;
     animation: flash 1s infinite alternate;
 }
 
-.coin-options label {
-    background-color: #222;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+@keyframes flash {
+    0% { color: #ff0; }
+    100% { color: #f00; }
 }
 
-.coin-options label:hover {
-    background-color: #444;
+#coin-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-width: 1000px;
+    margin: auto;
 }
 
 canvas {
     background-color: #111;
     border-radius: 10px;
     margin: 20px auto;
-    max-width: 90%;
+    max-width: 100%;
 }
 
-#crypto-dog-img {
-    margin-top: 20px;
-    width: 250px;
-    display: block;
+button {
+    background-color: #444;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #666;
 }
