@@ -1,176 +1,28 @@
-/* CryptoKitty Styles */
-
 body {
-    background-color: #000000;
-    color: #ffffff;
-    margin: 0;
-    font-family: 'Orbitron', sans-serif;
-    overflow-x: hidden;
-}
-
-.header-container {
-    display: flex;
-    align-items: center;
-    padding: 15px 40px;
-    background-color: rgba(0, 0, 0, 0.95);
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-    box-shadow: 0 0 30px #00ffff;
-    height: 120px;
-}
-
-.logo {
-    width: 100px;
-    margin-right: 20px;
-}
-
-.title {
-    flex: 1;
-    text-align: left;
-    font-size: 36px;
-    color: #00ffff;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff, 0 0 30px #00ffff;
-}
-
-.crypto-dog-widget {
-    width: 100px;
+    background-color: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
     text-align: center;
-    position: relative;
-    right: 80px;
-    top: 0;
-    margin-left: auto;
-}
-
-.crypto-dog-widget img {
-    width: 100px;
-    cursor: pointer;
-    margin-bottom: 5px;
-}
-
-.dropdown {
-    background-color: #00ffff;
-    color: #000000;
-    border: none;
-    border-radius: 10px;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-bottom: 10px;
-}
-
-.dropdown:hover {
-    background-color: #ff00ff;
-    color: #ffffff;
-}
-
-.container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 150px 20px 20px 20px;
-}
-
-.coin-selection {
-    background-color: rgba(0, 0, 0, 0.8);
-    border-radius: 10px;
-    box-shadow: 0 0 20px #00ffff;
-    margin: 20px;
     padding: 20px;
-    min-width: 250px;
-    max-width: 300px;
-    flex: 1;
-    text-align: center;
 }
 
-.coin-selection ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    padding: 0;
-}
-
-.coin-selection ul li {
-    width: 45%;
-    margin: 5px 0;
-}
-
-.coin-selection button {
-    background-color: #00ffff;
-    color: #000000;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-
-.coin-selection button:hover {
-    background-color: #ff00ff;
-    color: #ffffff;
-}
-
-.graph-container {
-    flex: 2;
-    min-width: 500px;
-    background-color: rgba(0, 0, 0, 0.8);
-    border-radius: 10px;
-    box-shadow: 0 0 30px #00ffff;
-    margin: 20px;
-    padding: 20px;
-    text-align: center;
-}
-
-canvas {
-    width: 100% !important;
-    height: 400px !important;
-}
-
-.coin-updates {
-    background-color: rgba(0, 0, 0, 0.8);
-    border-radius: 10px;
-    box-shadow: 0 0 30px #00ffff;
-    margin: 20px;
-    padding: 20px;
-    min-width: 300px;
-    flex: 1;
-    text-align: center;
+header {
+    margin-bottom: 20px;
 }
 
 ul {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
+    margin: 10px 0;
 }
 
-.flashing-banner {
-    position: fixed;
-    top: 160px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(255, 0, 255, 0.9);
-    color: #ffffff;
-    padding: 15px 20px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 20px;
-    animation: flash 1s infinite alternate;
+canvas {
+    background-color: #111;
     border-radius: 10px;
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 0 20px #ff00ff;
-    z-index: 1200;
+    margin-top: 20px;
 }
 
-@keyframes flash {
-    0% { background-color: rgba(255, 0, 255, 0.9); color: #ffffff; }
-    100% { background-color: rgba(0, 255, 255, 0.9); color: #000000; }
+#crypto-dog-img {
+    margin-top: 20px;
+    width: 200px;
 }
