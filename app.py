@@ -6,10 +6,9 @@ import time
 from collections import defaultdict, deque
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
 COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "LINK", "POL", "AERGO", "SUI"]
-PRICE_HISTORY = defaultdict(lambda: {"prices": deque(maxlen=20), "timestamps": deque(maxlen=20), "percentage_changes": deque(maxlen=20)})
 
 COIN_SYMBOLS = {
     "BTC": "bitcoin",
@@ -26,15 +25,6 @@ COIN_SYMBOLS = {
     "SUI": "sui"
 }
 
-API_URLS = [
-    # CoinGecko
-    "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies=usd",
-    # CoinCap
-    "https://api.coincap.io/v2/assets/{}",
-    # CoinLore (limited data, requires ID mapping)
-    "https://api.coinlore.net/api/ticker/?id={}"
-]
-
 COIN_LORE_IDS = {
     "bitcoin": 90,
     "ethereum": 80,
@@ -50,9 +40,19 @@ COIN_LORE_IDS = {
     "sui": 24074
 }
 
+API_URLS = [
+    # CoinGecko
+    "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies=usd",
+    # CoinCap
+    "https://api.coincap.io/v2/assets/{}",
+    # CoinLore
+    "https://api.coinlore.net/api/ticker/?id={}"
+]
+
+PRICE_HISTORY = defaultdict(lambda: {"prices": deque(maxlen=20), "timestamps": deque(maxlen=20), "percentage_changes": deque(maxlen=20)})
+
 def fetch_price(coin):
     symbol = COIN_SYMBOLS.get(coin.lower())
-    print(f"🔍 Fetching price for {coin} ({symbol})...")
     if not symbol:
         print(f"⚠️ Coin not found in COIN_SYMBOLS: {coin}")
         return None
@@ -61,14 +61,14 @@ def fetch_price(coin):
         try:
             if "coingecko" in url:
                 response = requests.get(url.format(symbol), timeout=5)
-                print(f"🟢 CoinGecko Response ({symbol}):", response.json())
                 data = response.json()
+                print(f"🟢 CoinGecko Response ({symbol}):", data)
                 return float(data[symbol]['usd'])
 
             elif "coincap" in url:
                 response = requests.get(url.format(symbol), timeout=5)
-                print(f"🟢 CoinCap Response ({symbol}):", response.json())
                 data = response.json()
+                print(f"🟢 CoinCap Response ({symbol}):", data)
                 return float(data['data']['priceUsd'])
 
             elif "coinlore" in url:
@@ -77,8 +77,8 @@ def fetch_price(coin):
                     print(f"⚠️ No CoinLore ID for {symbol}")
                     continue
                 response = requests.get(url.format(coin_id), timeout=5)
-                print(f"🟢 CoinLore Response ({symbol}):", response.json())
                 data = response.json()[0]
+                print(f"🟢 CoinLore Response ({symbol}):", data)
                 return float(data['price_usd'])
 
         except Exception as e:
@@ -89,18 +89,20 @@ def fetch_price(coin):
 
 @app.route('/')
 def index():
+    print("🚀 Serving index.html")
     return render_template('index.html')
 
 @app.route('/prices', methods=['POST'])
 def get_prices():
     selected_coins = request.json.get('coins', [])
-    print(f"Selected Coins Received: {selected_coins}")
+    print(f"📊 Coins Requested: {selected_coins}")
+
     prices = {}
 
     for coin in selected_coins:
         current_price = fetch_price(coin)
         if current_price is None:
-            print(f"Skipping {coin} due to missing price data.")
+            print(f"⚠️ Skipping {coin} due to missing price data.")
             continue
 
         # Update price history
@@ -126,9 +128,9 @@ def get_prices():
             "percentage_changes": list(history["percentage_changes"])
         }
 
-        print(f"Data for {coin}: {prices[coin]}\n")
+        print(f"✅ Data for {coin}: {prices[coin]}\n")
 
-    print("Sending immediate response\n")
+    print("✅ Sending response\n")
     return jsonify({"prices": prices, "status": "success"})
 
 if __name__ == '__main__':
