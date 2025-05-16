@@ -1,7 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 import requests
-import os
 import time
 from collections import defaultdict, deque
 
@@ -9,7 +8,6 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 COINS = ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "LINK", "POL", "AERGO", "SUI"]
-
 PRICE_HISTORY = defaultdict(lambda: {"prices": deque(maxlen=20), "timestamps": deque(maxlen=20), "percentage_changes": deque(maxlen=20)})
 
 COIN_SYMBOLS = {
@@ -27,19 +25,65 @@ COIN_SYMBOLS = {
     "SUI": "sui"
 }
 
-COINBASE_API_KEY = os.getenv("COINBASE_API_KEY")
+API_URLS = [
+    # CoinGecko
+    "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies=usd",
+    # CoinCap
+    "https://api.coincap.io/v2/assets/{}",
+    # CoinLore (limited data, requires ID mapping)
+    "https://api.coinlore.net/api/ticker/?id={}"
+]
 
-if not COINBASE_API_KEY:
-    print("\n🚨 WARNING: COINBASE_API_KEY is not set in the environment variables. Please add it to your Render dashboard.\n")
+COIN_LORE_IDS = {
+    "bitcoin": 90,
+    "ethereum": 80,
+    "ripple": 58,
+    "solana": 48543,
+    "cardano": 257,
+    "dogecoin": 2,
+    "polygon": 3635,
+    "polkadot": 4637,
+    "polymath": 265,
+    "chainlink": 1975,
+    "aergo": 1656,
+    "sui": 24074
+}
 
-COINBASE_API_URL = "https://api.coinbase.com/v2/prices/{}/spot?currency=USD"
-COINGECKO_API_URL = "https://api.coingecko.com/api/v3/simple/price?ids={}&vs_currencies=usd"
+def fetch_price(coin):
+    symbol = COIN_SYMBOLS.get(coin.lower())
+    if not symbol:
+        print(f"Coin not found in COIN_SYMBOLS: {coin}")
+        return None
 
-NEWS_API_URL = "https://api.coingecko.com/api/v3/news"
+    for url in API_URLS:
+        try:
+            if "coingecko" in url:
+                response = requests.get(url.format(symbol), timeout=5)
+                data = response.json()
+                return float(data[symbol]['usd'])
+
+            elif "coincap" in url:
+                response = requests.get(url.format(symbol), timeout=5)
+                data = response.json()
+                return float(data['data']['priceUsd'])
+
+            elif "coinlore" in url:
+                coin_id = COIN_LORE_IDS.get(symbol)
+                if not coin_id:
+                    print(f"No CoinLore ID for {symbol}")
+                    continue
+                response = requests.get(url.format(coin_id), timeout=5)
+                data = response.json()[0]
+                return float(data['price_usd'])
+
+        except Exception as e:
+            print(f"Error fetching price from {url} for {coin}: {e}")
+
+    print(f"Failed to fetch price for {coin} from all sources.")
+    return None
 
 @app.route('/')
 def index():
-    print("Serving index.html")
     return render_template('index.html')
 
 @app.route('/prices', methods=['POST'])
@@ -48,32 +92,11 @@ def get_prices():
     print(f"Selected Coins Received: {selected_coins}")
     prices = {}
 
-    headers = {
-        "Authorization": f"Bearer {COINBASE_API_KEY}",
-        "CB-VERSION": "2023-05-15"
-    }
-
     for coin in selected_coins:
-        symbol = COIN_SYMBOLS.get(coin)
-        if not symbol:
-            print(f"Coin not found in COIN_SYMBOLS: {coin}")
+        current_price = fetch_price(coin)
+        if current_price is None:
+            print(f"Skipping {coin} due to missing price data.")
             continue
-        try:
-            # Attempt Coinbase first
-            response = requests.get(COINBASE_API_URL.format(coin), headers=headers)
-            data = response.json()
-            current_price = float(data['data']['amount'])
-
-        except Exception as e:
-            print(f"Coinbase failed for {coin}, falling back to CoinGecko: {e}")
-            try:
-                # Fallback to CoinGecko if Coinbase fails
-                response = requests.get(COINGECKO_API_URL.format(symbol))
-                data = response.json()
-                current_price = float(data[symbol]['usd'])
-            except Exception as gecko_error:
-                print(f"CoinGecko failed for {coin}: {gecko_error}")
-                continue
 
         # Update price history
         history = PRICE_HISTORY[coin]
@@ -101,34 +124,8 @@ def get_prices():
         print(f"Data for {coin}: {prices[coin]}\n")
 
     print("Sending immediate response\n")
-
     return jsonify({"prices": prices, "status": "success"})
-
-@app.route('/top_risers', methods=['GET'])
-def top_risers():
-    try:
-        response = requests.get("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=3&page=1&sparkline=false")
-        data = response.json()
-        top_risers = [f"{coin['name']}: ${coin['current_price']}" for coin in data]
-        print(f"Top Risers: {top_risers}\n")
-        return jsonify({"top_risers": top_risers})
-    except Exception as e:
-        print(f"Error fetching top risers: {e}\n")
-        return jsonify({"top_risers": []})
-
-@app.route('/news', methods=['GET'])
-def get_news():
-    try:
-        response = requests.get("https://api.coingecko.com/api/v3/status_updates")
-        data = response.json()
-        news_items = [item['description'] for item in data['status_updates'][:5]]
-        print(f"Latest News: {news_items}\n")
-        return jsonify({"news": news_items})
-    except Exception as e:
-        print(f"Error fetching news: {e}\n")
-        return jsonify({"news": []})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    print(f"Starting server on port {port}\n")
     app.run(host="0.0.0.0", port=port, debug=True)
