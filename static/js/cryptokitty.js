@@ -1,3 +1,5 @@
+// CryptoKitty Main Logic
+
 document.addEventListener("DOMContentLoaded", () => {
     console.log("📈 CryptoKitty Loaded");
 
@@ -11,13 +13,19 @@ document.addEventListener("DOMContentLoaded", () => {
             responsive: true,
             scales: {
                 x: { title: { display: true, text: 'Time' } },
-                y: { title: { display: true, text: 'Price (USD)' }, min: -20, max: 20 }
+                y: { title: { display: true, text: 'Percentage Change (%)' }, min: -100, max: 100 }
             }
         }
     });
 
+    const coinDatasets = {};
+    let cryptoDogActive = false;
+
     function updateSelectedCoins() {
         const selectedCoins = [];
+        const coinListElement = document.getElementById('selected-coins');
+        coinListElement.innerHTML = '';
+
         document.querySelectorAll('#coin-list input[type="checkbox"]:checked').forEach(checkbox => {
             selectedCoins.push(checkbox.value);
         });
@@ -30,9 +38,64 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({ coins: selectedCoins })
         })
         .then(response => response.json())
-        .then(data => console.log("💰 Prices Data:", data))
+        .then(data => {
+            console.log("💰 Prices Data:", data);
+            const now = new Date().toLocaleTimeString();
+            const labels = cryptoChart.data.labels;
+
+            if (labels.length === 0 || labels[labels.length - 1] !== now) {
+                labels.push(now);
+                if (labels.length > 12) labels.shift();
+            }
+
+            selectedCoins.forEach(coin => {
+                const coinData = data.prices[coin];
+                if (!coinData) return;
+
+                const latestPrice = coinData.price;
+                const latestChange = coinData.change;
+                const percentageChanges = coinData.percentage_changes || [];
+
+                // Create or update dataset
+                if (!coinDatasets[coin]) {
+                    coinDatasets[coin] = {
+                        label: coin,
+                        data: [],
+                        borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.3
+                    };
+                    cryptoChart.data.datasets.push(coinDatasets[coin]);
+                }
+
+                // Update dataset
+                coinDatasets[coin].data.push(latestChange);
+                if (coinDatasets[coin].data.length > 12) coinDatasets[coin].data.shift();
+
+                // Update coin list
+                const coinElement = document.createElement('li');
+                const status = latestChange > 0 ? "Rising" : latestChange < 0 ? "Falling" : "Stable";
+                coinElement.textContent = `${coin}: $${latestPrice} (${latestChange}%) - ${status}`;
+                coinElement.style.color = latestChange < 0 ? 'red' : 'green';
+                coinListElement.appendChild(coinElement);
+            });
+
+            // Update graph
+            cryptoChart.update();
+        })
         .catch(error => console.error('Error fetching prices:', error));
     }
 
+    function selectAllCoins() {
+        document.querySelectorAll('#coin-list input[type="checkbox"]').forEach(checkbox => checkbox.checked = true);
+    }
+
+    function deselectAllCoins() {
+        document.querySelectorAll('#coin-list input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+    }
+
     document.getElementById('update-prices-btn').addEventListener('click', updateSelectedCoins);
+    document.getElementById('select-all').addEventListener('click', selectAllCoins);
+    document.getElementById('deselect-all').addEventListener('click', deselectAllCoins);
 });
