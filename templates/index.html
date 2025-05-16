@@ -20,9 +20,11 @@
             <button id="select-all">Select All</button>
             <button id="deselect-all">Deselect All</button>
             <div class="coin-options">
-                <label><input type="checkbox" value="BTC"> Bitcoin (BTC)</label>
-                <label><input type="checkbox" value="ETH"> Ethereum (ETH)</label>
-                <label><input type="checkbox" value="XRP"> Ripple (XRP)</label>
+                {% for coin in ["BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "LINK", 
+                                "BNB", "LTC", "BCH", "SHIB", "AVAX", "ATOM", "XMR", "FTM", "NEAR",
+                                "UNI", "ALGO", "VET", "MANA", "SAND", "ICP", "APE"] %}
+                <label><input type="checkbox" value="{{ coin }}"> {{ coin }}</label>
+                {% endfor %}
             </div>
             <button id="update-prices-btn">Update Prices</button>
         </div>
