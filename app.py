@@ -1,41 +1,93 @@
-from flask import Flask, jsonify, request, render_template
-from flask_cors import CORS
-import random
+from flask import Flask, request, jsonify
+import requests
+from collections import defaultdict
 import time
 
 app = Flask(__name__)
-CORS(app)
 
-TOP_25_COINS = [
-    "BTC", "ETH", "XRP", "SOL", "ADA", "DOGE", "MATIC", "DOT", "LINK", 
-    "BNB", "LTC", "BCH", "SHIB", "AVAX", "ATOM", "XMR", "FTM", "NEAR",
-    "UNI", "ALGO", "VET", "MANA", "SAND", "ICP", "APE"
+COINS = [
+    "bitcoin", "ethereum", "ripple", "solana", "cardano", "dogecoin", 
+    "polygon", "polkadot", "chainlink", "binancecoin", "litecoin", 
+    "bitcoin-cash", "shiba-inu", "avalanche-2", "cosmos", "monero", 
+    "fantom", "near", "uniswap", "algorand", "vechain", "decentraland", 
+    "the-sandbox", "internet-computer", "apecoin"
 ]
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+COIN_SYMBOLS = {
+    "BTC": "bitcoin",
+    "ETH": "ethereum",
+    "XRP": "ripple",
+    "SOL": "solana",
+    "ADA": "cardano",
+    "DOGE": "dogecoin",
+    "MATIC": "polygon",
+    "DOT": "polkadot",
+    "LINK": "chainlink",
+    "BNB": "binancecoin",
+    "LTC": "litecoin",
+    "BCH": "bitcoin-cash",
+    "SHIB": "shiba-inu",
+    "AVAX": "avalanche-2",
+    "ATOM": "cosmos",
+    "XMR": "monero",
+    "FTM": "fantom",
+    "NEAR": "near",
+    "UNI": "uniswap",
+    "ALGO": "algorand",
+    "VET": "vechain",
+    "MANA": "decentraland",
+    "SAND": "the-sandbox",
+    "ICP": "internet-computer",
+    "APE": "apecoin"
+}
 
-@app.route('/prices', methods=['POST'])
+# Cache to reduce API calls
+PRICE_HISTORY = defaultdict(list)
+MAX_HISTORY = 12
+
+def fetch_price(coin_id):
+    try:
+        response = requests.get(
+            f"https://api.coingecko.com/api/v3/simple/price",
+            params={"ids": coin_id, "vs_currencies": "usd", "include_24hr_change": "true"},
+            timeout=10
+        )
+        data = response.json()
+        return data[coin_id]["usd"], data[coin_id]["usd_24h_change"]
+    except Exception as e:
+        print(f"Error fetching price for {coin_id}: {e}")
+        return None, None
+
+@app.route("/prices", methods=["POST"])
 def get_prices():
-    selected_coins = request.json.get('coins', [])
-    print(f"📊 Coins Requested: {selected_coins}")
-
-    # Simulate real data
+    selected_coins = request.json.get("coins", [])
     prices = {}
-    for coin in selected_coins:
-        current_price = round(random.uniform(1, 50000), 2)
-        percentage_change = round(random.uniform(-100, 100), 2)
-        timestamps = [time.strftime('%H:%M', time.gmtime(time.time() - 300 * i)) for i in range(12)][::-1]
-        price_changes = [round(random.uniform(-100, 100), 2) for _ in range(12)]
-        prices[coin] = {
-            "price": current_price,
-            "change": percentage_change,
-            "timestamps": timestamps,
-            "percentage_changes": price_changes
+
+    for symbol in selected_coins:
+        coin_id = COIN_SYMBOLS.get(symbol)
+        if not coin_id:
+            continue
+
+        price, change = fetch_price(coin_id)
+        if price is None or change is None:
+            continue
+
+        # Add the current price and change to the history
+        PRICE_HISTORY[symbol].append({"price": price, "change": round(change, 2)})
+        if len(PRICE_HISTORY[symbol]) > MAX_HISTORY:
+            PRICE_HISTORY[symbol].pop(0)
+
+        prices[symbol] = {
+            "price": round(price, 2),
+            "change": round(change, 2),
+            "history": PRICE_HISTORY[symbol]
         }
 
     return jsonify({"prices": prices, "status": "success"})
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
+@app.route("/")
+def home():
+    return "CryptoKitty API is running"
+
+if __name__ == "__main__":
+    app.run(port=5000, debug=True)
