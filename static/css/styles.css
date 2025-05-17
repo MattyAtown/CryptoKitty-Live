@@ -5,7 +5,6 @@ body {
     font-family: 'Orbitron', sans-serif;
     padding: 20px;
     text-align: center;
-    overflow-x: hidden;
 }
 
 /* Header */
@@ -23,7 +22,6 @@ header {
 
 #aim-logo {
     width: 80px;
-    height: auto;
     margin-left: 20px;
 }
 
@@ -46,7 +44,6 @@ h1 {
 
 #crypto-dog-img {
     width: 80px;
-    height: 80px;
     margin-top: 10px;
     border-radius: 10px;
     border: 2px solid #0ff;
@@ -64,8 +61,6 @@ h1 {
     border-radius: 5px;
     border: 2px solid #0ff;
     box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
-    max-width: 90%;
-    margin: 20px auto;
 }
 
 /* Coin Buttons */
@@ -74,8 +69,6 @@ h1 {
     flex-wrap: wrap;
     gap: 15px;
     justify-content: center;
-    max-width: 1000px;
-    margin: 20px auto;
 }
 
 #coin-list button {
@@ -98,10 +91,13 @@ h1 {
     box-shadow: 0 0 20px #ff0099, 0 0 40px #ff0099, 0 0 60px #ff0099;
 }
 
+/* Active Coin Button Style */
 #coin-list button.active {
-    background-color: #0ff;
-    color: #000;
+    background-color: #0ff !important;
+    color: #000 !important;
+    border: 2px solid #0ff !important;
     box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
 }
 
 /* Main Content Layout */
@@ -111,6 +107,14 @@ h1 {
     gap: 20px;
     max-width: 1600px;
     margin: auto;
+}
+
+#coin-selection, #updates-results, #live-graph {
+    background-color: #111;
+    border-radius: 15px;
+    padding: 20px;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
 }
 
 /* Graph */
@@ -131,6 +135,4 @@ canvas {
     margin-top: 20px;
     border: 2px solid #0ff;
     box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
-    max-width: 1600px;
-    margin: auto;
 }
