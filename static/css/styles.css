@@ -1,104 +1,35 @@
-/* Global Styles */
-body {
-    background-color: #000;
-    color: #fff;
-    font-family: 'Orbitron', sans-serif;
-    padding: 20px;
-    text-align: center;
-}
-
-/* Header */
-header {
+/* Coin List Buttons */
+#coin-list {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #111;
-    padding: 20px;
-    border-radius: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
     margin-bottom: 20px;
-    border: 2px solid #0ff;
-    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
+    justify-content: center;
 }
 
-#aim-logo {
-    width: 80px;
-    margin-left: 20px;
-}
-
-h1 {
-    flex-grow: 1;
-    color: #ff0099;
-    font-size: 2em;
-    text-shadow: 0 0 10px #ff0099, 0 0 20px #ff0099, 0 0 40px #ff0099;
-    margin: 0;
-}
-
-#crypto-dog-container {
-    margin-right: 20px;
-    text-align: center;
-}
-
-#crypto-dog-img {
-    width: 80px;
-    margin-top: 10px;
-}
-
-/* Flashing Banner */
-#flashing-banner {
+#coin-list button {
     background-color: #111;
-    padding: 15px;
-    margin-bottom: 20px;
     color: #0ff;
-    font-size: 1.5em;
-    animation: glow 1s infinite alternate;
-    border-radius: 5px;
-    border: 2px solid #0ff;
-    box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
-}
-
-/* Main Content */
-#main-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr 2fr;
-    gap: 20px;
-    max-width: 1600px;
-    margin: auto;
-}
-
-#coin-selection, #updates-results, #live-graph {
-    background-color: #111;
-    border-radius: 15px;
-    padding: 20px;
+    padding: 15px 20px;
+    border-radius: 10px;
     border: 2px solid #0ff;
     box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
-    min-height: 300px;
-}
-
-/* Bottom Section */
-#bottom-section {
-    background-color: #111;
-    border-radius: 15px;
-    padding: 20px;
-    margin-top: 20px;
-    border: 2px solid #0ff;
-    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
-}
-
-/* Button Styles */
-button {
-    background-color: #444;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    margin: 10px 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1em;
     cursor: pointer;
-    transition: background-color 0.3s, box-shadow 0.3s;
-    border: 2px solid #0ff;
-    box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
 }
 
-button:hover {
-    background-color: #555;
+#coin-list button:hover {
+    background-color: #333;
+    color: #ff0099;
     box-shadow: 0 0 20px #ff0099, 0 0 40px #ff0099, 0 0 60px #ff0099;
+}
+
+#coin-list button.active {
+    background-color: #0ff;
+    color: #000;
+    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff, 0 0 60px #0ff;
 }
