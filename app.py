@@ -3,6 +3,7 @@ from flask_cors import CORS
 import requests
 from collections import defaultdict
 import os
+import random
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 CORS(app)
@@ -35,11 +36,21 @@ COIN_SYMBOLS = {
     "VET": "vechain"
 }
 
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+    "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/602.4.8 (KHTML, like Gecko) Version/10.0.3 Safari/602.4.8",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.110 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; AS; rv:11.0) like Gecko"
+]
+
 def fetch_price(coin_id):
     try:
         print(f"🌐 Fetching price for {coin_id}...")
+        headers = {"User-Agent": random.choice(USER_AGENTS)}
         response = requests.get(
             f"https://api.coingecko.com/api/v3/simple/price",
+            headers=headers,
             params={"ids": coin_id, "vs_currencies": "usd", "include_24hr_change": "true"},
             timeout=10
         )
@@ -74,12 +85,6 @@ def get_prices():
         coin_id = COIN_SYMBOLS.get(symbol)
         if not coin_id:
             print(f"⚠️ Invalid coin symbol: {symbol}")
-            continue
-
-        # Test if the coin ID is valid before requesting
-        test_response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd")
-        if test_response.status_code != 200 or coin_id not in test_response.json():
-            print(f"⚠️ Coin ID {coin_id} not recognized by CoinGecko")
             continue
 
         price, change = fetch_price(coin_id)
