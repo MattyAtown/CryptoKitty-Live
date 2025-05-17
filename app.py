@@ -76,6 +76,12 @@ def get_prices():
             print(f"⚠️ Invalid coin symbol: {symbol}")
             continue
 
+        # Test if the coin ID is valid before requesting
+        test_response = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd")
+        if test_response.status_code != 200 or coin_id not in test_response.json():
+            print(f"⚠️ Coin ID {coin_id} not recognized by CoinGecko")
+            continue
+
         price, change = fetch_price(coin_id)
         if price is None or change is None:
             print(f"⚠️ No data returned for {symbol} ({coin_id})")
