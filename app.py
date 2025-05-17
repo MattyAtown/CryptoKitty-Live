@@ -35,49 +35,61 @@ COIN_SYMBOLS = {
     "APE": "apecoin"
 }
 
-# Cache to reduce API calls
-PRICE_HISTORY = defaultdict(list)
-MAX_HISTORY = 12
-
 def fetch_price(coin_id):
     try:
+        print(f"🌐 Fetching price for {coin_id}...")
         response = requests.get(
             f"https://api.coingecko.com/api/v3/simple/price",
             params={"ids": coin_id, "vs_currencies": "usd", "include_24hr_change": "true"},
             timeout=10
         )
+        response.raise_for_status()
         data = response.json()
-        return data[coin_id]["usd"], data[coin_id]["usd_24h_change"]
+        
+        # Check if the coin data is present
+        if coin_id not in data:
+            print(f"⚠️ No data found for {coin_id} in response: {data}")
+            return None, None
+        
+        price = data[coin_id].get("usd")
+        change = data[coin_id].get("usd_24h_change")
+        
+        # Check if both price and change are present
+        if price is None or change is None:
+            print(f"⚠️ Missing price or change data for {coin_id}: {data[coin_id]}")
+            return None, None
+        
+        print(f"✅ Fetched price for {coin_id}: ${price} ({change}%)")
+        return price, change
     except Exception as e:
-        print(f"Error fetching price for {coin_id}: {e}")
+        print(f"❌ Error fetching price for {coin_id}: {e}")
         return None, None
 
 @app.route("/prices", methods=["POST"])
 def get_prices():
     print("🚀 Received /prices request")
     selected_coins = request.json.get("coins", [])
+    print(f"🪙 Requested Coins: {selected_coins}")
     prices = {}
 
     for symbol in selected_coins:
         coin_id = COIN_SYMBOLS.get(symbol)
         if not coin_id:
+            print(f"⚠️ Invalid coin symbol: {symbol}")
             continue
 
         price, change = fetch_price(coin_id)
         if price is None or change is None:
+            print(f"⚠️ No data returned for {symbol} ({coin_id})")
             continue
-
-        # Add the current price and change to the history
-        PRICE_HISTORY[symbol].append({"price": price, "change": round(change, 2)})
-        if len(PRICE_HISTORY[symbol]) > MAX_HISTORY:
-            PRICE_HISTORY[symbol].pop(0)
 
         prices[symbol] = {
             "price": round(price, 2),
-            "change": round(change, 2),
-            "history": PRICE_HISTORY[symbol]
+            "change": round(change, 2)
         }
+        print(f"📊 {symbol} - Price: {price}, Change: {change}")
 
+    print(f"✅ Final Prices: {prices}")
     return jsonify({"prices": prices, "status": "success"})
 
 @app.route("/")
