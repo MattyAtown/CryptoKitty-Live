@@ -22,12 +22,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Button Click Logic
-    coinButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            button.classList.toggle("active");
-        });
+
+// Button Click Logic (Improved)
+coinButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        button.classList.toggle("active");
+        button.style.backgroundColor = button.classList.contains("active") ? "#0ff" : "#111";
+        button.style.color = button.classList.contains("active") ? "#000" : "#0ff";
     });
+});
+
 
     // Update Prices Button Logic
     updateButton.addEventListener("click", () => {
