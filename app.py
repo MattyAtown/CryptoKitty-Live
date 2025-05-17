@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, render_template
 import requests
 from collections import defaultdict
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 
 COIN_SYMBOLS = {
     "BTC": "bitcoin",
@@ -78,8 +78,12 @@ def get_prices():
     return jsonify({"prices": prices, "status": "success"})
 
 @app.route("/")
-def home():
-    return "CryptoKitty API is running"
+def index():
+    return render_template("index.html")
+
+@app.route("/static/<path:path>")
+def serve_static(path):
+    return send_from_directory("static", path)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
