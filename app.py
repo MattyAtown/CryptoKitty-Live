@@ -8,31 +8,31 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 CORS(app)
 
 COIN_SYMBOLS = {
-    "BTC": "bitcoin",
-    "ETH": "ethereum",
-    "XRP": "ripple",
-    "SOL": "solana",
-    "ADA": "cardano",
-    "DOGE": "dogecoin",
-    "MATIC": "polygon",
-    "DOT": "polkadot",
-    "LINK": "chainlink",
-    "BNB": "binancecoin",
-    "LTC": "litecoin",
-    "BCH": "bitcoin-cash",
-    "SHIB": "shiba-inu",
-    "AVAX": "avalanche-2",
-    "ATOM": "cosmos",
-    "XMR": "monero",
-    "FTM": "fantom",
-    "NEAR": "near",
-    "UNI": "uniswap",
     "ALGO": "algorand",
-    "VET": "vechain",
-    "MANA": "decentraland",
-    "SAND": "the-sandbox",
+    "SOL": "wrapped-solana",
+    "APE": "apetos",
+    "AVAX": "binance-peg-avalanche",
+    "BTC": "osmosis-allbtc",
+    "BNB": "binance-coin-wormhole",
+    "ETH": "the-ticker-is-eth",
+    "MATIC": "matic-network",
+    "BCH": "bitcoin-cash",
+    "ADA": "cardano",
+    "DOGE": "doge-on-pulsechain",
+    "LTC": "litecoin",
+    "NEAR": "near",
+    "DOT": "xcdot",
+    "SHIB": "strategic-hub-for-innovation-in-blockchain",
+    "XRP": "warioxrpdumbledoreyugioh69inu",
+    "LINK": "osmosis-alllink",
+    "ATOM": "cosmos",
+    "MANA": "meme-anarchic-numismatic-asset",
+    "FTM": "fantom",
     "ICP": "internet-computer",
-    "APE": "apecoin"
+    "UNI": "uniswap-wormhole",
+    "XMR": "monero",
+    "SAND": "the-sandbox-wormhole",
+    "VET": "vechain"
 }
 
 def fetch_price(coin_id):
@@ -46,7 +46,6 @@ def fetch_price(coin_id):
         response.raise_for_status()
         data = response.json()
         
-        # Check if the coin data is present
         if coin_id not in data:
             print(f"⚠️ No data found for {coin_id} in response: {data}")
             return None, None
@@ -54,7 +53,6 @@ def fetch_price(coin_id):
         price = data[coin_id].get("usd")
         change = data[coin_id].get("usd_24h_change")
         
-        # Check if both price and change are present
         if price is None or change is None:
             print(f"⚠️ Missing price or change data for {coin_id}: {data[coin_id]}")
             return None, None
