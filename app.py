@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask_cors import CORS
 import requests
 from collections import defaultdict
 import os
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
+CORS(app)
 
 COIN_SYMBOLS = {
     "BTC": "bitcoin",
@@ -52,6 +54,7 @@ def fetch_price(coin_id):
 
 @app.route("/prices", methods=["POST"])
 def get_prices():
+    print("🚀 Received /prices request")
     selected_coins = request.json.get("coins", [])
     prices = {}
 
