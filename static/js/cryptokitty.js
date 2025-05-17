@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("🚀 Sending price request for:", selectedCoins);
 
-        fetch("/prices", {
+        fetch("https://cryptokitty-live.onrender.com/prices", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -90,6 +90,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             cryptoChart.update();
         })
-        .catch(error => console.error("Error fetching prices:", error));
+        .catch(error => {
+            console.error("Error fetching prices:", error);
+            alert("⚠️ Error fetching prices. Please try again later.");
+        });
     });
 });
