@@ -1,17 +1,9 @@
 from flask import Flask, request, jsonify
 import requests
 from collections import defaultdict
-import time
+import os
 
 app = Flask(__name__)
-
-COINS = [
-    "bitcoin", "ethereum", "ripple", "solana", "cardano", "dogecoin", 
-    "polygon", "polkadot", "chainlink", "binancecoin", "litecoin", 
-    "bitcoin-cash", "shiba-inu", "avalanche-2", "cosmos", "monero", 
-    "fantom", "near", "uniswap", "algorand", "vechain", "decentraland", 
-    "the-sandbox", "internet-computer", "apecoin"
-]
 
 COIN_SYMBOLS = {
     "BTC": "bitcoin",
@@ -90,4 +82,5 @@ def home():
     return "CryptoKitty API is running"
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
