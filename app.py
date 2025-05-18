@@ -109,6 +109,16 @@ def index():
 def serve_static(path):
     return send_from_directory("static", path)
 
+@app.route("/", methods=["GET", "POST"])
+def index():
+    selected = []
+    time_range = "1h"
+    if request.method == "POST":
+        coins = request.form.get("coins", "")
+        print("Coins received:", coins)  # Debug line
+        selected = coins.split(",") if coins else []
+        time_range = request.form.get("time_range", "1h")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
