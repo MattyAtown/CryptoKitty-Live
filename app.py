@@ -47,7 +47,7 @@ NEWS_HEADLINES = [
 # Fetch live prices from CoinGecko
 def fetch_price(coin):
     try:
-        symbol = COIN_SYMBOLS.get(coin)
+        symbol = COIN_SYMBOLS.get(coin.upper())
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd"
         response = requests.get(url)
         data = response.json()
@@ -64,6 +64,7 @@ def fetch_price(coin):
     except Exception as e:
         print(f"🚨 Error fetching price for {coin}: {e}")
         return None
+
 
 # Determine trend based on recent prices
 def get_trend(prices):
