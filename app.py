@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import defaultdict
 
 app = Flask(__name__)
@@ -48,23 +48,33 @@ NEWS_HEADLINES = [
 def fetch_price(coin):
     try:
         symbol = COIN_SYMBOLS.get(coin.upper())
+        if not symbol:
+            print(f"⚠️ No symbol found for {coin}. Skipping.")
+            return None
+        
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd"
-        response = requests.get(url)
-        data = response.json()
+        response = requests.get(url, timeout=5)
 
-        # Correctly handle the response format
-        if symbol in data and 'usd' in data[symbol]:
-            price = data[symbol]['usd']
-            print(f"✅ Price for {coin} ({symbol}): {price} USD")
-            return round(float(price), 2)
+        # Check for valid response
+        if response.status_code == 200:
+            data = response.json()
+            price = data.get(symbol, {}).get('usd')
+            if price is not None:
+                print(f"✅ Price for {coin} ({symbol}): {price} USD")
+                return round(float(price), 2)
+            else:
+                print(f"⚠️ No USD price found for {coin} ({symbol}) in API response: {data}")
+                return None
         else:
-            print(f"⚠️ No USD price found for {coin} ({symbol}) in API response: {data}")
+            print(f"🚨 API Error for {coin} ({symbol}): {response.status_code} - {response.text}")
             return None
 
-    except Exception as e:
-        print(f"🚨 Error fetching price for {coin}: {e}")
+    except requests.RequestException as e:
+        print(f"🚨 Network error fetching price for {coin}: {e}")
         return None
-
+    except Exception as e:
+        print(f"🚨 Unexpected error fetching price for {coin}: {e}")
+        return None
 
 # Determine trend based on recent prices
 def get_trend(prices):
@@ -94,7 +104,7 @@ def index():
             prices[coin] = price
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             PRICE_HISTORY[coin].append((timestamp, price))
-            PRICE_HISTORY[coin] = PRICE_HISTORY[coin][-100:]
+            PRICE_HISTORY[coin] = PRICE_HISTORY[coin][-100:]  # Keep last 100 points
             # Prepare price history for the frontend
             price_history[coin] = [p[1] for p in PRICE_HISTORY[coin]]
         else:
